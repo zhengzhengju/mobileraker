@@ -53,8 +53,8 @@ Future<CustomerInfo> customerInfo(CustomerInfoRef ref) async {
 
     return customerInfo;
   } on PlatformException catch (e, s) {
-    logger.w('Could not fetch customer info. Platform code: ${e.code}!', e, s);
-    return const CustomerInfo(EntitlementInfos({}, {}), {}, [], [], [], "", "", {}, "");
+    logger.warning('Could not fetch customer info. Platform code: ${e.code}!', e, s);
+    return const CustomerInfo(EntitlementInfos({}, {}), {}, [], [], [], '', '', {}, '');
   }
 }
 
