@@ -4,7 +4,6 @@
  */
 
 import 'dart:async';
-import 'dart:math';
 
 import 'package:common/service/selected_machine_service.dart';
 import 'package:common/service/setting_service.dart';
@@ -77,8 +76,8 @@ class ThemeService {
   /// Selects the system's default theme pack based on user preferences or falls
   /// back to the first theme pack in the list if the stored selection is out of range.
   void selectSystemThemePack() {
-    var selIndex = _settingService.readInt(AppSettingKeys.themePack);
-    int themeIndex = selIndex;
+    var settingIndex = _settingService.readInt(AppSettingKeys.themePack);
+    int themeIndex = settingIndex.clamp(0, themePacks.length - 1);
 
     logger.info('Theme selected: $settingIndex, available theme len: ${themePacks.length}');
     var modeIndex = _settingService.readInt(AppSettingKeys.themeMode).clamp(0, 2);

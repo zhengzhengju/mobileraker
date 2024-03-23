@@ -105,7 +105,7 @@ setupBoxes() async {
     // await openBoxes(keyMaterial);
     await openBoxes();
     Hive.box<Machine>("printers").values.forEach((element) {
-      logger.i('Machine in box is ${element.logName}#${element.hashCode}');
+      logger.info('Machine in box is ${element.logName}#${element.hashCode}');
       // ToDo remove after machine migration!
       element.save();
     });
