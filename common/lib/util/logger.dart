@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:common/util/extensions/provider_extension.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:stringr/stringr.dart';
@@ -14,9 +15,10 @@ import 'package:talker_flutter/talker_flutter.dart';
 
 late final Talker logger;
 
+final globalLogLevel = (kDebugMode) ? LogLevel.debug : LogLevel.info;
+
 Future<void> setupLogger() async {
-  var level = LogLevel.debug;
-  var loggerSettings = TalkerLoggerSettings(level: level);
+  var loggerSettings = TalkerLoggerSettings(level: globalLogLevel);
   logger = TalkerFlutter.init(
     logger: TalkerLogger(
       // filter: LogLevelFilter(LogLevel.verbose),
@@ -122,10 +124,12 @@ extension MobilerakerTalker on Talker {
   }
 
   void jrpcRequest(String connectionInfo, String msg) {
+    if (globalLogLevel != LogLevel.verbose) return;
     logTyped(_JrpcLog('REQ', connectionInfo, AnsiPen()..cyan(), LogLevel.verbose, msg));
   }
 
   void jrpcReceive(String connectionInfo, String msg) {
+    if (globalLogLevel != LogLevel.verbose) return;
     logTyped(_JrpcLog('RECV', connectionInfo, AnsiPen()..yellow(), LogLevel.verbose, msg));
   }
 }
