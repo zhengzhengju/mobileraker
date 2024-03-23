@@ -57,7 +57,7 @@ class SelectedMachineService {
   }
 
   selectMachine(Machine? machine, [bool force = false]) async {
-    logger.i('Selecting machine ${machine?.name}');
+    logger.info('Selecting machine ${machine?.name}');
     if (machine == null) {
       // This case sets no printer as active!
       await _boxUuid.delete('selectedPrinter');
@@ -65,7 +65,7 @@ class SelectedMachineService {
         _selectedMachineCtrler.add(null);
         _selected = null;
       }
-      logger.i('Selecting no printer as active Printer. Stream is closed?: ${_selectedMachineCtrler.isClosed}');
+      logger.info('Selecting no printer as active Printer. Stream is closed?: ${_selectedMachineCtrler.isClosed}');
       return;
     }
 
@@ -82,7 +82,7 @@ class SelectedMachineService {
     List<Machine> list = await _machineRepo.fetchAll();
 
     if (list.length < 2) return;
-    logger.i('Selecting next machine');
+    logger.info('Selecting next machine');
     int indexSelected = list.indexWhere((element) => element.uuid == _selected?.uuid);
     int next = (indexSelected + 1) % list.length;
     selectMachine(list[next]);
@@ -91,7 +91,7 @@ class SelectedMachineService {
   selectPreviousMachine() async {
     List<Machine> list = await _machineRepo.fetchAll();
     if (list.length < 2) return;
-    logger.i('Selecting previous machine');
+    logger.info('Selecting previous machine');
     int indexSelected = list.indexWhere((element) => element.uuid == _selected?.uuid);
     int prev = (indexSelected - 1 < 0) ? list.length - 1 : indexSelected - 1;
     selectMachine(list[prev]);

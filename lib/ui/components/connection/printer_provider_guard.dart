@@ -26,7 +26,7 @@ class PrinterProviderGuard extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     var printer = ref.watch(printerProvider(machineUUID));
 
-    // logger.i('Rebuilding PrinterProviderGuard ');
+    // logger.info('Rebuilding PrinterProviderGuard ');
 
     return switch (printer) {
       AsyncError(:final error) => _ProviderError(key: const Key('ppErr'), machineUUID: machineUUID, error: error),
@@ -69,7 +69,7 @@ class _ProviderError extends ConsumerWidget {
         body: Text(message),
         action: TextButton.icon(
           onPressed: () {
-            logger.i('Invalidating printer service provider, to retry printer fetching');
+            logger.info('Invalidating printer service provider, to retry printer fetching');
             ref.invalidate(printerServiceProvider(machineUUID));
           },
           icon: const Icon(Icons.restart_alt_outlined),

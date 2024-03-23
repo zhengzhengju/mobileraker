@@ -28,7 +28,7 @@ class _MachineDeletionWarningController extends _$MachineDeletionWarningControll
     var isSupporter = ref.watch(isSupporterProvider);
     var maxNonSupporterMachines = ref.watch(remoteConfigProvider).maxNonSupporterMachines;
     var machineCount = ref.watch(allMachinesProvider.selectAs((d) => d.length)).valueOrNull ?? 0;
-    logger.i(
+    logger.info(
       'Max allowed machines for non Supporters is $maxNonSupporterMachines',
     );
     DateTime? dismissStamp = _settingService.read(UtilityKeys.nonSupporterDismiss, null);

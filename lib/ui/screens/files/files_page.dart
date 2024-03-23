@@ -607,8 +607,8 @@ class _ImageFileItem extends ConsumerWidget {
               httpHeaders: imageHeaders,
               placeholder: (context, url) => const Icon(Icons.image),
               errorWidget: (context, url, error) {
-                logger.w(url);
-                logger.e(error);
+                logger.warning(url);
+                logger.error(error);
                 return const Icon(Icons.error);
               },
             ),
@@ -716,8 +716,8 @@ class _GCodeFileItem extends ConsumerWidget {
           httpHeaders: headers,
           placeholder: (context, url) => const Icon(Icons.insert_drive_file),
           errorWidget: (context, url, error) {
-            logger.w(url);
-            logger.e(error);
+            logger.warning(url);
+            logger.error(error);
             return const Icon(Icons.error);
           },
         ),

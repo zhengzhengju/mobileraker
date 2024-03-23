@@ -65,11 +65,11 @@ class _UserBottomSheetState extends State<UserBottomSheet> {
               if (keyboardHeight == 0) {
                 size = _originalSize!;
                 _originalSize = null;
-                logger.i('Restoring size to $_originalSize');
+                logger.info('Restoring size to $_originalSize');
               } else {
                 size = _controller.pixelsToSize(keyboardHeight) + _controller.size;
                 _originalSize ??= _controller.size;
-                logger.i('Bottom insets: $keyboardHeight => $size');
+                logger.info('Bottom insets: $keyboardHeight => $size');
               }
 
               _controller.animateTo(
@@ -499,7 +499,7 @@ class _UserBottomSheetController extends _$UserBottomSheetController {
 
   @override
   Stream<_Model> build() async* {
-    logger.i('Rebuilding UserBottomSheetController');
+    logger.info('Rebuilding UserBottomSheetController');
     var wAuth = ref.watch(authProvider);
     var providers = FirebaseUIAuth.providersFor(wAuth.app);
     yield* ref.watchAsSubject(firebaseUserProvider).map((user) {
@@ -508,13 +508,13 @@ class _UserBottomSheetController extends _$UserBottomSheetController {
   }
 
   void onLinkedProviderChanged() {
-    logger.i('onLinkedProviderChanged');
+    logger.info('onLinkedProviderChanged');
     ref.invalidateSelf();
   }
 
   Future<void> signOut() {
     return FirebaseUIAuth.signOut(auth: _auth).catchError((e) {
-      logger.e('Error signing out', e);
+      logger.error('Error signing out', e);
       state = state.whenData((value) =>
           value.copyWith(errorText: 'An unexpected error occured while signing out. Please try again later.'));
     });
@@ -536,7 +536,7 @@ class _UserBottomSheetController extends _$UserBottomSheetController {
     try {
       usr.delete();
     } catch (e) {
-      logger.e('Error deleting user account', e);
+      logger.error('Error deleting user account', e);
       state = state.whenData((value) => value.copyWith(
           errorText: 'An unexpected error occured while deleting your account. Please try again later.'));
     }
@@ -545,7 +545,7 @@ class _UserBottomSheetController extends _$UserBottomSheetController {
   Future<void> restorePurchases() async {
     await _paymentService.restorePurchases(passErrors: true, showSnacks: false).catchError((e) {
       var errorCode = PurchasesErrorHelper.getErrorCode(e);
-      logger.e('Error restoring purchases. Error code: $errorCode');
+      logger.error('Error restoring purchases. Error code: $errorCode');
       state = state.whenData(
           (value) => value.copyWith(errorText: 'An unexpected error occured while restoring purchases.\n$errorCode'));
     });

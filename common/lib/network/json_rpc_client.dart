@@ -144,7 +144,7 @@ class JsonRpcClient {
 
   set curState(ClientState newState) {
     if (curState == newState) return;
-    logger.i('$logPrefix $curState ➝ $newState');
+    logger.jrpcInfo(logPrefix, '$curState ➝ $newState');
     if (!_stateStream.isClosed) _stateStream.add(newState);
     _curState = newState;
   }
@@ -164,7 +164,7 @@ class JsonRpcClient {
   /// reconnection try, if needded is completed!
   Future<bool> ensureConnection() async {
     if (curState != ClientState.connected && curState != ClientState.connecting) {
-      logger.i('$logPrefix WS not connected! connecting...');
+      logger.jrpcInfo(logPrefix, 'WS not connected! connecting...');
       return openChannel();
     }
     return true;
@@ -184,7 +184,7 @@ class JsonRpcClient {
 
     _pendingRequests[mId] = _Request(method, completer, StackTrace.current);
 
-    logger.d('$logPrefix Sending(Blocking) for method "$method" with ID $mId');
+    logger.jrpcRequest(logPrefix, 'Sending(Blocking) for method "$method" with ID $mId');
     _send(jsonEncode(jsonRpc));
     // If the timeout is zero, dont enforce a timeout
     if (timeout == Duration.zero) {
@@ -192,6 +192,7 @@ class JsonRpcClient {
     }
     return completer.future.timeout(timeout).onError<TimeoutException>((error, stackTrace) {
       _pendingRequests.remove(mId);
+      logger.jrpcError(logPrefix, 'JRpcMethod($method) timed out after ${error.duration?.inSeconds} seconds');
       throw JRpcTimeoutError('JRpcMethod($method) timed out after ${error.duration?.inSeconds} seconds');
     });
   }
@@ -214,7 +215,7 @@ class JsonRpcClient {
   Future<void> identifyConnection(PackageInfo packageInfo, String? apiKey) async {
     if (_connectionIdentified) return;
 
-    logger.i('$logPrefix Identifying connection');
+    logger.jrpcInfo(logPrefix, 'Identifying connection');
     _connectionIdentified = true;
 
     try {
@@ -229,23 +230,23 @@ class JsonRpcClient {
         },
       );
     } catch (e) {
-      logger.e('$logPrefix Error while identifying connection: $e');
+      logger.jrpcError(logPrefix, 'Error while identifying connection: $e');
     }
   }
 
   Future<bool> _tryConnect() async {
-    logger.i('$logPrefix Trying to connect');
+    logger.jrpcInfo(logPrefix, 'Trying to connect');
     curState = ClientState.connecting;
     _resetChannel();
 
-    logger.i('$logPrefix Using headers $headers');
-    logger.i('$logPrefix Using timeout $timeout');
+    logger.jrpcInfo(logPrefix, 'Using headers $headers');
+    logger.jrpcInfo(logPrefix, 'Using timeout $timeout');
 
     // Since obico is not closing/terminating the websocket connection in case of statusCode errors like limit reached, we need to send a good old http request.
     if (clientType == ClientType.obico) {
       var obicoValid = await _obicoConnectionIsValid(_httpClient);
       if (!obicoValid) {
-        logger.i('$logPrefix Obico connection is not valid, aborting opening of websocket');
+        logger.jrpcInfo(logPrefix, 'Obico connection is not valid, aborting opening of websocket');
         return false;
       }
     }
@@ -271,10 +272,10 @@ class JsonRpcClient {
 
     return ioChannel.ready.then((value) {
       curState = ClientState.connected;
-      logger.i('$logPrefix IOWebSocketChannel reported READY!');
+      logger.jrpcInfo(logPrefix, 'IOWebSocketChannel reported READY!');
       return true;
     }, onError: (_, __) {
-      logger.i('$logPrefix IOWebSocketChannel reported NOT READY!');
+      logger.jrpcInfo(logPrefix, 'IOWebSocketChannel reported NOT READY!');
       return false;
     });
   }
@@ -284,7 +285,6 @@ class JsonRpcClient {
 
   /// Sends a message to the server
   _send(String message) {
-    logger.d('$logPrefix >>> $message');
     _channel?.sink.add(message);
   }
 
@@ -295,7 +295,7 @@ class JsonRpcClient {
     String? method = result['method'];
     Map<String, dynamic>? error = result['error'];
 
-    logger.d('$logPrefix @Rec (messageId: $mId): $message');
+    logger.jrpcReceive(logPrefix, 'Received message "$mId": $message');
 
     if (method != null) {
       _methodListeners[method]?.forEach((e) => e(result));
@@ -308,11 +308,11 @@ class JsonRpcClient {
   /// Helper method used as callback if a normal async/future send is requested
   _completerCallback(Map<String, dynamic> response, {Map<String, dynamic>? err}) {
     var mId = response['id'];
-    logger.d('$logPrefix Received(Blocking) for id: "$mId"');
+    logger.jrpcReceive(logPrefix, 'Received(Blocking) for id: "$mId"');
     if (_pendingRequests.containsKey(mId)) {
       var request = _pendingRequests.remove(mId)!;
       if (err != null) {
-        // logger.e('Completing $mId with error $err,\n${StackTrace.current}',);
+        // logger.jrpcError('Completing $mId with error $err,\n${StackTrace.current}',);
         request.completer.completeError(JRpcError(err['code'], err['message']), request.stacktrace);
       } else {
         if (response['result'] == 'ok') {
@@ -330,13 +330,13 @@ class JsonRpcClient {
         request.completer.complete(RpcResponse.fromJson(response));
       }
     } else {
-      logger.w('$logPrefix Received response for unknown id "$mId"');
+      logger.jrpcWarning(logPrefix, 'Received response for unknown id "$mId"');
     }
   }
 
   _onChannelDone(WebSocketChannel ioChannel) async {
     if (_disposed) {
-      logger.i('$logPrefix WS-Stream is DONE!');
+      logger.jrpcInfo(logPrefix, 'WS-Stream is DONE!');
       return;
     }
     var closedNormally = await ioChannel.ready.then((value) => true, onError: (_, __) => false);
@@ -351,7 +351,7 @@ class JsonRpcClient {
     var closeCode = ioChannel.closeCode;
     var closeReason = ioChannel.closeReason;
 
-    logger.i('$logPrefix WS-Stream closed normal! Code: $closeCode, Reason: $closeReason');
+    logger.jrpcInfo(logPrefix, 'WS-Stream closed normal! Code: $closeCode, Reason: $closeReason');
 
     ClientState t = curState;
     if (t != ClientState.error) {
@@ -360,25 +360,25 @@ class JsonRpcClient {
     if (!_stateStream.isClosed) curState = t;
     // Can not reconnect if the close code is 1002 (protocol error)
     if (closeCode == 1002) {
-      logger.i('$logPrefix Reconnecting is not possible, because the close code is 1002 (protocol error)');
+      logger.jrpcInfo(logPrefix, 'Reconnecting is not possible, because the close code is 1002 (protocol error)');
       return;
     }
     openChannel();
   }
 
   _onChannelClosedAbnormally() async {
-    logger.i('$logPrefix WS-Stream closed abnormally!');
+    logger.jrpcInfo(logPrefix, 'WS-Stream closed abnormally!');
     // Here we figure out exactly what is the problem!
     var httpUri = uri.toHttpUri();
     try {
-      logger.w('$logPrefix Sending GET to ${httpUri.obfuscate()} to determine error reason');
+      logger.jrpcWarning(logPrefix, 'Sending GET to ${httpUri.obfuscate()} to determine error reason');
       var request = await _httpClient.openUrl('GET', httpUri);
       headers.forEach((key, value) {
         request.headers.add(key, value);
       });
 
       HttpClientResponse response = await request.close();
-      logger.i('$logPrefix Got Response to determine error reason: ${response.statusCode}');
+      logger.jrpcInfo(logPrefix, 'Got Response to determine error reason: ${response.statusCode}');
       verifyHttpResponseCodes(response.statusCode, clientType);
       // openChannel(); // If no exception was thrown, we just try again!
     } catch (e) {
@@ -387,13 +387,13 @@ class JsonRpcClient {
   }
 
   _onChannelError(error) async {
-    logger.w('$logPrefix Got channel error $error');
+    logger.jrpcWarning(logPrefix, 'Got channel error $error');
     // _updateError(error);
   }
 
   _updateError(error) {
     if (_disposed) return;
-    logger.e('$logPrefix WS-Stream error: $error');
+    logger.jrpcError(logPrefix, 'WS-Stream error: $error');
     errorReason = error;
     curState = ClientState.error;
   }
@@ -402,14 +402,14 @@ class JsonRpcClient {
     var httpUri = uri.toHttpUri().replace(path: '/server/info');
 
     try {
-      logger.w('$logPrefix Sending GET to ${httpUri.obfuscate()} to determine obico statusCode');
+      logger.jrpcWarning(logPrefix, 'Sending GET to ${httpUri.obfuscate()} to determine obico statusCode');
 
       var request = await client.openUrl('GET', httpUri);
       headers.forEach((key, value) {
         request.headers.add(key, value);
       });
       HttpClientResponse response = await request.close();
-      logger.i('$logPrefix Got Response to determine obico statusCode: ${response.statusCode}');
+      logger.jrpcInfo(logPrefix, 'Got Response to determine obico statusCode: ${response.statusCode}');
 
       verifyHttpResponseCodes(response.statusCode, clientType);
     } catch (e) {
@@ -423,17 +423,17 @@ class JsonRpcClient {
     _disposed = true;
 
     if (_pendingRequests.isNotEmpty) {
-      logger.i(
-          '$logPrefix Found ${_pendingRequests.length} hanging requests, waiting for them before completly disposing client');
+      logger.jrpcInfo(logPrefix,
+          'Found ${_pendingRequests.length} hanging requests, waiting for them before completly disposing client');
       try {
         await Future.wait(_pendingRequests.values.map((e) => e.completer.future)).timeout(const Duration(seconds: 30));
       } on TimeoutException catch (_) {
-        logger.i('$logPrefix Was unable to complete all hanging JRPC requests after 30sec...');
+        logger.jrpcInfo(logPrefix, 'Was unable to complete all hanging JRPC requests after 30sec...');
       } on JRpcError catch (_) {
         // Just catch the JRPC errors that might be returned in the futures to prevent async gap errors...
         // These errors should be handled in the respective caller!
       } finally {
-        logger.i('$logPrefix All hanging requests finished!');
+        logger.jrpcInfo(logPrefix, 'All hanging requests finished!');
       }
     }
 
@@ -445,10 +445,17 @@ class JsonRpcClient {
 
     _resetChannel();
     _stateStream.close();
-    logger.i('$logPrefix JsonRpcClient disposed!');
+    logger.jrpcInfo(logPrefix, 'JsonRpcClient disposed!');
   }
 
-  String get logPrefix => '[$clientType@${uri.obfuscate()} #${identityHashCode(this)}]';
+  String get logPrefix {
+    var s = '$clientType@${uri.obfuscate()}';
+
+    if (kDebugMode) {
+      s += ' #${identityHashCode(this)}';
+    }
+    return s;
+  }
 
   @override
   bool operator ==(Object other) =>

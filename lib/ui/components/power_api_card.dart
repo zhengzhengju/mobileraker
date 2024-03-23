@@ -44,8 +44,8 @@ class PowerApiCard extends ConsumerWidget {
 
     var model = ref.watch(_powerApiCardControllerProvider(machineUUID));
 
-    logger.i('Rebuilding PowerApiCard for $machineUUID');
-    logger.w('Model: $model');
+    logger.info('Rebuilding PowerApiCard for $machineUUID');
+    logger.warning('Model: $model');
     Widget widget = switch (model) {
       // We have a value and the model showCard is true
       AsyncValue(hasValue: true, value: _Model(showCard: true, :final devices, :final isPrinting)) => Card(
@@ -222,7 +222,7 @@ class _ProviderError extends ConsumerWidget {
               body: Text(message),
               action: TextButton.icon(
                 onPressed: () {
-                  logger.i('Invalidating power service for $machineUUID');
+                  logger.info('Invalidating power service for $machineUUID');
                   ref.invalidate(powerServiceProvider(machineUUID));
                 },
                 icon: const Icon(Icons.restart_alt_outlined),
@@ -250,7 +250,7 @@ class _PowerApiCardController extends _$PowerApiCardController {
   Future<_Model> build(String machineUUID) async {
     ref.keepAliveFor();
 
-    logger.i('Rebuilding PowerApiCardController for $machineUUID');
+    logger.info('Rebuilding PowerApiCardController for $machineUUID');
 
     var hasPowerAPI = await ref.watch(klipperProvider(machineUUID).selectAsync((data) => data.hasPowerComponent));
 

@@ -37,7 +37,7 @@ class AsyncValueWidget<T> extends StatelessWidget {
       data: data,
       loading: loading ?? () => const Center(child: CircularProgressIndicator.adaptive()),
       error: (e, s) {
-        logger.e('Error in Widget', e, s);
+        logger.error('Error in Widget', e, s);
         return Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,

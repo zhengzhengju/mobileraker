@@ -3,55 +3,25 @@
  * All rights reserved.
  */
 
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:common/util/extensions/provider_extension.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:stringr/stringr.dart';
+import 'package:talker_flutter/talker_flutter.dart';
 
-late final Logger logger;
-late final MemoryOutput memoryOutput;
-const String logFile = 'mobileraker.log';
+late final Talker logger;
 
 Future<void> setupLogger() async {
-  Logger.level = Level.info;
-  memoryOutput = MemoryOutput(bufferSize: 200, secondOutput: ConsoleOutput());
-  LogOutput logOutput;
-  try {
-    final logDir = await logFileDirectory();
-    final logFiles = logDir.listSync();
-
-    // handle log rotation!
-    if (logFiles.length >= 5) {
-      logFiles.sort((a, b) => a.statSync().modified.compareTo(b.statSync().modified));
-      await Future.wait(logFiles.sublist(0, logFiles.length - 4).map((element) => element.delete()));
-    }
-
-    String timeStamp = _logFileTimestamp();
-    final logFile = await File('${logDir.path}/mobileraker_$timeStamp.log').create();
-    logOutput = FileOutput(
-      file: logFile,
-      secondOutput: memoryOutput,
-    );
-  } catch (e) {
-    logOutput = memoryOutput;
-    debugPrint('Error while setting up file-logger, falling back to memory only solution: $e');
-  }
-
-  logger = Logger(
-    printer: PrettyPrinter(
-        methodCount: 0,
-        errorMethodCount: 200,
-        noBoxingByDefault: true,
-        printTime: !kDebugMode,
-        colors: kDebugMode && !Platform.isIOS),
-    output: logOutput,
-    filter: ProductionFilter(),
+  var level = LogLevel.debug;
+  var loggerSettings = TalkerLoggerSettings(level: level);
+  logger = TalkerFlutter.init(
+    logger: TalkerLogger(
+      // filter: LogLevelFilter(LogLevel.verbose),
+      settings: loggerSettings,
+    ),
   );
 }
 
@@ -60,16 +30,7 @@ bool _isolateLoggerAvailable = false;
 Future<void> setupIsolateLogger() async {
   if (_isolateLoggerAvailable) return;
   _isolateLoggerAvailable = true;
-  logger = Logger(
-    printer: PrettyPrinter(
-        methodCount: 0,
-        errorMethodCount: 200,
-        noBoxingByDefault: true,
-        printTime: !kDebugMode,
-        colors: kDebugMode && !Platform.isIOS),
-    output: ConsoleOutput(),
-    filter: ProductionFilter(),
-  );
+  logger = TalkerFlutter.init();
 }
 
 Future<Directory> logFileDirectory() async {
@@ -88,7 +49,7 @@ class RiverPodLogger extends ProviderObserver {
 
   @override
   void providerDidFail(ProviderBase provider, Object error, StackTrace stackTrace, ProviderContainer container) {
-    logger.e('[RiverPodLogger]::FAILED ${provider.toIdentityString()} failed with', error, stackTrace);
+    logger.error('[RiverPodLogger]::FAILED ${provider.toIdentityString()} failed with', error, stackTrace);
   }
 
   @override
@@ -96,16 +57,16 @@ class RiverPodLogger extends ProviderObserver {
     if (['toolheadInfoProvider'].contains(provider.name)) return;
 
     var familiy = provider.from?.toString() ?? '';
-    logger.wtf('[RiverPodLogger]::DISPOSED: ${provider.toIdentityString()} $familiy');
+    logger.verbose('[RiverPodLogger]::DISPOSED: ${provider.toIdentityString()} $familiy');
     //
     // if (provider.name == 'klipperServiceProvider') {
-    //   logger.wtf('RiverPod::klipperServiceProvider:  ${container}');
+    //   logger.verbose('RiverPod::klipperServiceProvider:  ${container}');
     // }
   }
 
   @override
   void didAddProvider(ProviderBase provider, Object? value, ProviderContainer container) {
-    logger.wtf('[RiverPodLogger]::CREATED-> ${provider.toIdentityString()} WITH PARENT? ${container.depth}');
+    logger.verbose('[RiverPodLogger]::CREATED-> ${provider.toIdentityString()} WITH PARENT? ${container.depth}');
   }
 
   @override
@@ -128,48 +89,43 @@ class RiverPodLogger extends ProviderObserver {
     var familiy = provider.argument?.toString() ?? '';
     var providerStr = '${provider.name ?? provider.runtimeType}#${identityHashCode(provider)}$familiy';
 
-    logger.wtf(
+    logger.verbose(
         '[RiverPodLogger]::UPDATE-old-> $providerStr ${identityHashCode(previousValue)}:${previousValue.toString().truncate(200)}');
-    logger.wtf(
+    logger.verbose(
         '[RiverPodLogger]::UPDATE-new->$providerStr ${identityHashCode(newValue)}:${newValue.toString().truncate(200)}');
   }
 }
 
-class FileOutput extends LogOutput {
-  final LogOutput? secondOutput;
-  final File file;
-  final bool overrideExisting;
-  final Encoding encoding;
-  IOSink? _sink;
+class _JrpcLog extends TalkerLog {
+  _JrpcLog(this.type, this.con, AnsiPen pen, LogLevel level, String message)
+      : super(message, pen: pen, logLevel: level);
 
-  FileOutput({
-    required this.file,
-    this.secondOutput,
-    this.overrideExisting = false,
-    this.encoding = utf8,
-  });
+  final String type;
+  final String con;
 
+  /// Your custom log title
   @override
-  void init() {
-    _sink = file.openWrite(
-      mode: overrideExisting ? FileMode.writeOnly : FileMode.writeOnlyAppend,
-      encoding: encoding,
-    );
-    secondOutput?.init();
+  String get title => '$type.jRPC@$con';
+}
+
+extension MobilerakerTalker on Talker {
+  void jrpcInfo(String connectionInfo, String msg) {
+    logTyped(_JrpcLog('I', connectionInfo, AnsiPen()..blue(), LogLevel.info, msg));
   }
 
-  @override
-  void output(OutputEvent event) {
-    _sink?.writeAll(event.lines, '\n');
-    _sink?.writeln();
-    secondOutput?.output(event);
-    // _sink?.flush();
+  void jrpcWarning(String connectionInfo, String msg) {
+    logTyped(_JrpcLog('W', connectionInfo, AnsiPen()..yellow(), LogLevel.warning, msg));
   }
 
-  @override
-  void destroy() async {
-    await _sink?.flush();
-    await _sink?.close();
-    secondOutput?.destroy();
+  void jrpcError(String connectionInfo, String msg) {
+    logTyped(_JrpcLog('E', connectionInfo, AnsiPen()..red(), LogLevel.error, msg));
+  }
+
+  void jrpcRequest(String connectionInfo, String msg) {
+    logTyped(_JrpcLog('REQ', connectionInfo, AnsiPen()..cyan(), LogLevel.verbose, msg));
+  }
+
+  void jrpcReceive(String connectionInfo, String msg) {
+    logTyped(_JrpcLog('RECV', connectionInfo, AnsiPen()..yellow(), LogLevel.verbose, msg));
   }
 }

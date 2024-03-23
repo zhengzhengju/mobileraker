@@ -39,7 +39,7 @@ class MachineStatusCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    logger.i('Rebuilding MachineStatusCard for $machineUUID');
+    logger.info('Rebuilding MachineStatusCard for $machineUUID');
 
     var showLoading =
         ref.watch(_machineStatusCardProvider(machineUUID).select((value) => value.isLoading && !value.isReloading));
@@ -57,7 +57,7 @@ class MachineStatusCard extends ConsumerWidget {
           Consumer(builder: (ctx, iref, _) {
             var model = iref
                 .watch(_machineStatusCardProvider(machineUUID).selectRequireValue((data) => data.showToolheadTable));
-            // logger.i('Rebuilding ToolheadInfoTable for $machineUUID');
+            // logger.info('Rebuilding ToolheadInfoTable for $machineUUID');
             return AnimatedSwitcher(
               duration: kThemeAnimationDuration,
               transitionBuilder: (child, animation) => SizeAndFadeTransition(
@@ -112,7 +112,7 @@ class _CardTitle extends ConsumerWidget {
     var klippyCanReceiveCommands =
         ref.watch(_machineStatusCardProvider(machineUUID).selectRequireValue((data) => data.klippyCanReceiveCommands));
 
-    // logger.i('Rebuilding _CardTitle for $machineUUID');
+    // logger.info('Rebuilding _CardTitle for $machineUUID');
 
     var printState = ref.watch(_machineStatusCardProvider(machineUUID).selectRequireValue((data) => data.printState));
     return ListTile(
@@ -142,7 +142,7 @@ class _Title extends ConsumerWidget {
     var klippyCanReceiveCommands =
         ref.watch(_machineStatusCardProvider(machineUUID).selectRequireValue((data) => data.klippyCanReceiveCommands));
 
-    // logger.i('Rebuilding _Title for $machineUUID');
+    // logger.info('Rebuilding _Title for $machineUUID');
 
     final Widget text;
     if (klippyCanReceiveCommands) {
@@ -182,7 +182,7 @@ class _Trailing extends ConsumerWidget {
     // Here it is fine to just use the model directly, as the most updates will be triggered via the progress which we are using here
     var model = ref.watch(_machineStatusCardProvider(machineUUID).requireValue());
 
-    // logger.i('Rebuilding _Trailing for $machineUUID');
+    // logger.info('Rebuilding _Trailing for $machineUUID');
 
     var themeData = Theme.of(context);
 
@@ -260,7 +260,7 @@ class _KlippyStateActionButtons extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     var controller = ref.watch(_machineStatusCardProvider(machineUUID).notifier);
-    // logger.i('Rebuilding _KlippyStateActionButtons for $machineUUID');
+    // logger.info('Rebuilding _KlippyStateActionButtons for $machineUUID');
     var klippyState =
         ref.watch(_machineStatusCardProvider(machineUUID).selectRequireValue((data) => data.klipperState));
 
@@ -303,7 +303,7 @@ class _M117Message extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     var controller = ref.watch(_machineStatusCardProvider(machineUUID).notifier);
-    // logger.i('Rebuilding _M117Message for $machineUUID');
+    // logger.info('Rebuilding _M117Message for $machineUUID');
     var m117 = ref.watch(_machineStatusCardProvider(machineUUID).selectRequireValue((data) => data.m117));
 
     //TOOD: Animate this. So just use a AnimatedSwitcher and a size
@@ -351,7 +351,7 @@ class _ExcludeObject extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     var themeData = Theme.of(context);
-    // logger.i('Rebuilding _ExcludeObject for $machineUUID');
+    // logger.info('Rebuilding _ExcludeObject for $machineUUID');
 
     var controller = ref.watch(_machineStatusCardProvider(machineUUID).notifier);
     var show = ref.watch(_machineStatusCardProvider(machineUUID).selectRequireValue((data) => data.showExcludeObject));
@@ -449,7 +449,7 @@ class _MachineStatusCard extends _$MachineStatusCard {
   Stream<_Model> build(String machineUUID) async* {
     ref.keepAliveFor();
     // await Future.delayed(const Duration(seconds: 5));
-    // logger.i('Building content for MachineStatusCard for $machineUUID');
+    // logger.info('Building content for MachineStatusCard for $machineUUID');
     var printerProviderr = printerProvider(machineUUID);
     var klipperProviderr = klipperProvider(machineUUID);
 

@@ -77,7 +77,7 @@ class _PrinterCalibrationWatcherState extends ConsumerState<FilamentSensorWatche
     ref.listenManual(
       boolSettingProvider(AppSettingKeys.filamentSensorDialog, true),
       (previous, next) {
-        logger.w('FilamentSensorWatcher: filamentSensorDialog setting changed from $previous to $next');
+        logger.warning('FilamentSensorWatcher: filamentSensorDialog setting changed from $previous to $next');
         if (next != _enabled) {
           _enabled = next;
         }

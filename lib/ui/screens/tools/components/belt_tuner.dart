@@ -228,7 +228,7 @@ class _BeltTunerController extends _$BeltTunerController {
 
   @override
   Stream<int> build() async* {
-    logger.i('Building belt tuner controller');
+    logger.info('Building belt tuner controller');
 
     var status = await ref.watch(permissionStatusProvider(Permission.microphone).future);
     // We can only use the fft service if we have permission to access the microphone
@@ -258,7 +258,7 @@ class _BeltTunerController extends _$BeltTunerController {
   Future<void> requestPermission() async {
     var status = await ref.read(permissionStatusProvider(Permission.microphone).future);
     if (status.isGranted) return;
-    logger.i('Mic permission is not granted ($status), requesting it now');
+    logger.info('Mic permission is not granted ($status), requesting it now');
 
     if (status == PermissionStatus.denied) {
       status = await Permission.microphone.request();
@@ -278,7 +278,7 @@ class _BeltTunerController extends _$BeltTunerController {
 
   start() async {
     var status = await ref.read(permissionStatusProvider(Permission.microphone).future);
-    logger.e(status);
+    logger.error(status);
     if (!status.isGranted) return;
     _fftService.start();
   }

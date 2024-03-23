@@ -18,6 +18,7 @@ import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:hashlib/hashlib.dart';
 import 'package:hashlib_codecs/hashlib_codecs.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:talker_dio_logger/talker_dio_logger.dart';
 
 import '../exceptions/mobileraker_exception.dart';
 
@@ -33,6 +34,13 @@ Dio dioClient(DioClientRef ref, String machineUUID) {
   var dio = Dio(baseOptions);
   dio.interceptors.add(RetryInterceptor(dio: dio));
   dio.interceptors.add(MobilerakerDioInterceptor());
+  dio.interceptors.add(
+    TalkerDioLogger(
+      settings: const TalkerDioLoggerSettings(
+        printRequestHeaders: true,
+      ),
+    ),
+  );
   ref.onDispose(dio.close);
 
   var httpClient = ref.watch(httpClientProvider(machineUUID, clientType));
@@ -132,6 +140,13 @@ Dio octoApiClient(OctoApiClientRef ref) {
   ref.onDispose(dio.close);
   dio.interceptors.add(RetryInterceptor(dio: dio));
   dio.interceptors.add(MobilerakerDioInterceptor());
+  dio.interceptors.add(
+    TalkerDioLogger(
+      settings: const TalkerDioLoggerSettings(
+        printRequestHeaders: false,
+      ),
+    ),
+  );
   return dio;
 }
 
@@ -145,5 +160,12 @@ Dio obicoApiClient(ObicoApiClientRef ref, String baseUri) {
   ref.onDispose(dio.close);
   dio.interceptors.add(RetryInterceptor(dio: dio));
   dio.interceptors.add(MobilerakerDioInterceptor());
+  dio.interceptors.add(
+    TalkerDioLogger(
+      settings: const TalkerDioLoggerSettings(
+        printRequestHeaders: false,
+      ),
+    ),
+  );
   return dio;
 }

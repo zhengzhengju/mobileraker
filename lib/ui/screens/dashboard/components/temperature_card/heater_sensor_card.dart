@@ -90,7 +90,7 @@ class _CardBody extends ConsumerWidget {
     var genericHeatersCount = ref.watch(provider.selectAs((value) => value.genericHeaters.length)).requireValue;
     var temperatureSensorCount = ref.watch(provider.selectAs((value) => value.temperatureSensors.length)).requireValue;
     var temperatureFanCount = ref.watch(provider.selectAs((value) => value.temperatureFans.length)).requireValue;
-    logger.w('Rebuilding HeaterSensorCard');
+    logger.warning('Rebuilding HeaterSensorCard');
     return AdaptiveHorizontalScroll(
       snap: true,
       pageStorageKey: 'temps$machineUUID',

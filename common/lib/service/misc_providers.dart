@@ -27,7 +27,7 @@ Future<PackageInfo> versionInfo(VersionInfoRef _) {
 Future<PermissionStatus> permissionStatus(PermissionStatusRef ref, Permission permission) async {
   var status = await permission.status;
 
-  logger.i('Permission $permission is $status');
+  logger.info('Permission $permission is $status');
   return status;
 }
 
@@ -35,7 +35,7 @@ Future<PermissionStatus> permissionStatus(PermissionStatusRef ref, Permission pe
 Future<ServiceStatus> permissionServiceStatus(PermissionServiceStatusRef ref, PermissionWithService permission) async {
   var status = await permission.serviceStatus;
 
-  logger.i('Permission $permission serviceStatus is $status');
+  logger.info('Permission $permission serviceStatus is $status');
   return status;
 }
 
@@ -44,7 +44,7 @@ class AppLifecycle extends _$AppLifecycle {
   @override
   AppLifecycleState build() {
     ref.listenSelf((previous, next) {
-      logger.i('AppLifecycleState changed from $previous to $next');
+      logger.info('AppLifecycleState changed from $previous to $next');
     });
 
     return AppLifecycleState.resumed;

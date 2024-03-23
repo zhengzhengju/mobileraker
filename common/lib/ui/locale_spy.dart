@@ -18,7 +18,7 @@ class LocaleSpy extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    logger.i('LocaleSpy: build');
+    logger.info('LocaleSpy: build');
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(activeLocaleProvider.notifier).setLocale(context.locale);
     });
@@ -31,7 +31,7 @@ class ActiveLocale extends _$ActiveLocale {
   @override
   Locale build() {
     ref.listenSelf((previous, next) {
-      logger.i('Active locale changed from $previous to $next');
+      logger.info('Active locale changed from $previous to $next');
     });
 
     return const Locale('en');

@@ -59,7 +59,7 @@ class _GCodeFileDetailPage extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     var animCtrler = useAnimationController(duration: const Duration(milliseconds: 400))..forward();
 
-    logger.w('Rebuilding _GCodeFileDetailPage');
+    logger.warning('Rebuilding _GCodeFileDetailPage');
     var controller = ref.watch(_gCodeFileDetailsControllerProvider.notifier);
     var model = ref.watch(_gCodeFileDetailsControllerProvider);
 
@@ -355,7 +355,7 @@ GCodeFile gcode(GcodeRef ref) => throw UnimplementedError();
 class _GCodeFileDetailsController extends _$GCodeFileDetailsController {
   @override
   _Model build() {
-    logger.i('Buildign GCodeFileDetailsController');
+    logger.info('Buildign GCodeFileDetailsController');
 
     var machineUUID = ref.watch(selectedMachineProvider.select((value) => value.requireValue!.uuid));
     var gCodeFile = ref.watch(gcodeProvider);

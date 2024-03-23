@@ -270,7 +270,7 @@ class FilesPageController extends _$FilesPageController {
           '${state.pathAsString}/$newName',
         );
       } on JRpcError catch (e) {
-        logger.e('Could not perform rename.', e);
+        logger.error('Could not perform rename.', e);
         _snackBarService.show(SnackBarConfig(
           type: SnackbarType.error,
           message: 'Could not rename File.\n${e.message}',
@@ -343,7 +343,7 @@ class FilesPageController extends _$FilesPageController {
   }
 
   _onFileListChanged(FileActionResponse fileListChangedNotification) {
-    logger.i('FileListChangedNotification: $fileListChangedNotification');
+    logger.info('FileListChangedNotification: $fileListChangedNotification');
     FileItem item = fileListChangedNotification.item;
     var itemWithInLevel = isWithin(state.pathAsString, item.fullPath);
 

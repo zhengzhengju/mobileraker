@@ -32,10 +32,10 @@ class _RemoteAnnouncementsController extends _$RemoteAnnouncementsController {
   List<DeveloperAnnouncementEntry> build() {
     var isSupporter = ref.watch(isSupporterProvider);
     var announcement = ref.watch(developerAnnouncementProvider);
-    logger.i('Developer announcements are enabled: ${announcement.enabled}');
+    logger.info('Developer announcements are enabled: ${announcement.enabled}');
     if (!announcement.enabled) return [];
 
-    // logger.i('Dismissed hashes: $_dismissedHashes');
+    // logger.info('Dismissed hashes: $_dismissedHashes');
 
     return announcement.messages
         .where((element) =>

@@ -266,7 +266,7 @@ class _WebcamCardController extends _$WebcamCardController {
   Future<_Model> build(String machineUUID) async {
     ref.keepAliveFor();
 
-    logger.i('Rebuilding WebcamCardController for $machineUUID');
+    logger.info('Rebuilding WebcamCardController for $machineUUID');
 
     var machine = await ref.watch(machineProvider(machineUUID).future);
 

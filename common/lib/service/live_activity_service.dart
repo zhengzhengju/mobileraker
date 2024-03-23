@@ -79,14 +79,14 @@ class LiveActivityService {
   Future<void> initialize() async {
     try {
       await _initIos();
-      logger.i('Completed LiveActivityService init');
+      logger.info('Completed LiveActivityService init');
     } catch (e, s) {
       FirebaseCrashlytics.instance.recordError(
         e,
         s,
         reason: 'Error while setting up the LiveActivityService',
       );
-      logger.w('Error encountered while trying to setup the LiveActivityService.', e, s);
+      logger.warning('Error encountered while trying to setup the LiveActivityService.', e, s);
     } finally {
       _initialized.complete(true);
     }
@@ -105,19 +105,19 @@ class LiveActivityService {
     } catch (e, s) {
       if (e is PlatformException) {
         if (e.code == 'WRONG_IOS_VERSION') {
-          logger.i('Could not initialize LiveActivityService because the iOS version is to low');
+          logger.info('Could not initialize LiveActivityService because the iOS version is to low');
           return;
         }
       }
-      logger.e('Error while setting up the LiveActivityService', e, s);
+      logger.error('Error while setting up the LiveActivityService', e, s);
       rethrow;
     }
   }
 
   void _setupLiveActivityListener() {
-    logger.i('Started to listen for LiveActivity updates');
+    logger.info('Started to listen for LiveActivity updates');
     _activityUpdateStreamSubscription = _liveActivityAPI.activityUpdateStream.listen((event) async {
-      logger.i('LiveActivity update: $event');
+      logger.info('LiveActivity update: $event');
 
       var entry = _machineLiveActivityMap.entries.firstWhereOrNull((entry) => entry.value.id == event.activityId);
       if (entry == null) return;
@@ -126,7 +126,7 @@ class LiveActivityService {
 
       event.mapOrNull(
         active: (state) async {
-          logger.i(
+          logger.info(
               'Updating Pushtoken for ${machine.name} LiveActivity ${state.activityId} to ${state.activityToken} fro');
           _machineLiveActivityMap[entry.key] = _ActivityEntry(state.activityId, state.activityToken);
           _machineService
@@ -155,7 +155,7 @@ class LiveActivityService {
               (_, nextP) => nextP.whenData((value) => _handlePrinterData(machine.uuid, value)));
         }
 
-        logger.i(
+        logger.info(
             'Added ${listenersToOpen.length} new printerData listeners and removed ${listenersToClose.length} printer listeners in the LiveActivityService');
       }),
       fireImmediately: true,
@@ -202,7 +202,7 @@ class LiveActivityService {
           isPrinting && printer.currentFile?.name != null && notification.file != printer.currentFile?.name;
       // final hasEtaChange = isPrinting && printer.eta != null && notification.eta != printer.eta;
       if (!hasProgressChange && !hasStateChange && !hasFileChange) return;
-      logger.i('LiveActivity Passed state and progress check. $printState, ${printer.printProgress}');
+      logger.info('LiveActivity Passed state and progress check. $printState, ${printer.printProgress}');
       await _notificationsRepository.save(
         Notification(machineUuid: machineUUID)
           ..progress = printer.printProgress
@@ -229,9 +229,9 @@ class LiveActivityService {
 
     await _clearUnknownLiveActivities();
 
-    logger.i('The app has currently ${allMachines.length} machines');
+    logger.info('The app has currently ${allMachines.length} machines');
     for (var machine in allMachines) {
-      logger.i('Force a LiveActivity update for ${machine.name} after app was resumed');
+      logger.info('Force a LiveActivity update for ${machine.name} after app was resumed');
       // We await to prevent any race conditions
       ref.read(printerProvider(machine.uuid)).whenData((value) {
         if ({PrintState.printing, PrintState.paused}.contains(value.print.state)) {
@@ -251,7 +251,7 @@ class LiveActivityService {
 
     if (machine == null) return;
 
-    logger.i('Refreshing LiveActivity for ${machine.name}');
+    logger.info('Refreshing LiveActivity for ${machine.name}');
     _updateLiveActivityLocks[machineUUID] = Completer();
     try {
       var themePack = ref.read(themeServiceProvider).activeTheme.themePack;
@@ -291,21 +291,21 @@ class LiveActivityService {
   }
 
   Future<void> _clearUnknownLiveActivities() async {
-    logger.i('Ending all unknown LiveActivities');
+    logger.info('Ending all unknown LiveActivities');
 
     // Create a map of locally tracked live activities by swapping value and key activityId -> machineUuid
     var activityIdMachine = _machineLiveActivityMap.map((key, value) => MapEntry(value.id, key));
 
-    logger.i('Found ${activityIdMachine.length} locally tracked LiveActivities');
-    // logger.i('activityIdMachine: $activityIdMachine');
+    logger.info('Found ${activityIdMachine.length} locally tracked LiveActivities');
+    // logger.info('activityIdMachine: $activityIdMachine');
 
     // Get all activities
     var allActivities = await _liveActivityAPI.getAllActivitiesIds();
-    logger.i('Found ${allActivities.length} LiveActivities');
+    logger.info('Found ${allActivities.length} LiveActivities');
     // Get the state of all activities
     var activityAndStateList =
         await Future.wait(allActivities.map((e) => _liveActivityAPI.getActivityState(e).then((state) => (e, state))));
-    // logger.i('activityAndStateList: $activityAndStateList');
+    // logger.info('activityAndStateList: $activityAndStateList');
 
     // Filter out all activities not known to the app -> The api/app can not address anymore
     var unaddressableActivities = activityAndStateList.whereNot((e) => activityIdMachine.containsKey(e.$1));
@@ -321,7 +321,7 @@ class LiveActivityService {
 
     // Ensure we wait for all activities to be ended
     await Future.wait(endActivities);
-    logger.i('Cleared unknown LiveActivities, total ended: ${unaddressableActivities.length}');
+    logger.info('Cleared unknown LiveActivities, total ended: ${unaddressableActivities.length}');
     _backupLiveActivityMap();
   }
 
@@ -333,11 +333,11 @@ class LiveActivityService {
 
       LiveActivityState? activityState = await _liveActivityAPI.getActivityState(activityEntry.id);
 
-      logger.i('LiveActivityState for ${machine.name} is $activityState');
+      logger.info('LiveActivityState for ${machine.name} is $activityState');
 
       // If the activity is still active we can update it and return
       if (activityState == LiveActivityState.active) {
-        logger.i('Can update LiveActivity for ${machine.name} with id: $activityEntry');
+        logger.info('Can update LiveActivity for ${machine.name} with id: $activityEntry');
         await _liveActivityAPI.updateActivity(activityEntry.id, activityData);
         return activityEntry.id;
       }
@@ -348,7 +348,7 @@ class LiveActivityService {
 
     // If we are not allowed to create a new activity we can just return null
     if (!createIfMissing) {
-      logger.i('Not allowed to create a new LiveActivity for ${machine.name} since createIfMissing is false');
+      logger.info('Not allowed to create a new LiveActivity for ${machine.name} since createIfMissing is false');
       return null;
     }
 
@@ -357,7 +357,7 @@ class LiveActivityService {
     if (activityId != null) {
       _machineLiveActivityMap[machine.uuid] = _ActivityEntry(activityId);
     }
-    logger.i('Created new LiveActivity for ${machine.name} with id: $activityId');
+    logger.info('Created new LiveActivity for ${machine.name} with id: $activityId');
     _backupLiveActivityMap();
     return activityId;
   }
@@ -377,11 +377,11 @@ class LiveActivityService {
     // This is not required any more since the live activities are now killed if the app is killed
     var restored = _settingsService.readMap<String, String>(UtilityKeys.liveActivityStore);
     _machineLiveActivityMap.addAll(restored.map((key, value) => MapEntry(key, _ActivityEntry(value))));
-    logger.i('Restored ${restored.length} LiveActivities from storage: $restored');
+    logger.info('Restored ${restored.length} LiveActivities from storage: $restored');
   }
 
   dispose() {
-    logger.e('The LiveActivityService was disposed! THIS SHOULD NEVER HAPPEN! CHECK THE DISPOSING!!!');
+    logger.error('The LiveActivityService was disposed! THIS SHOULD NEVER HAPPEN! CHECK THE DISPOSING!!!');
     _machineUpdatesListener?.cancel();
     _activityUpdateStreamSubscription?.cancel();
     for (var element in _printerListeners.values) {

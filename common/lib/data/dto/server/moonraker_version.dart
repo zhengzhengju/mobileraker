@@ -70,7 +70,7 @@ class MoonrakerVersion with _$MoonrakerVersion {
 
   // Compare two MoonrakerVersion objects based on major, minor, and patch.
   int compareTo(int major, int minor, int patch, int commits) {
-    logger.i('Comparing $this to $major.$minor.$patch-$commits');
+    logger.info('Comparing $this to $major.$minor.$patch-$commits');
     if (this.major != major) {
       return this.major.compareTo(major);
     } else if (this.minor != minor) {

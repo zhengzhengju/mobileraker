@@ -38,7 +38,7 @@ class _PrinterCalibrationWatcherState extends ConsumerState<PrinterCalibrationWa
       printerProvider(widget.machineUUID).selectAs((d) => d.manualProbe?.isActive),
       (previous, next) {
         if (next.valueOrNull == true && !_dialogService.isDialogOpen) {
-          logger.i('Detected manualProbe... opening Dialog');
+          logger.info('Detected manualProbe... opening Dialog');
           _dialogService.show(DialogRequest(
             barrierDismissible: false,
             type: DialogType.manualOffset,
@@ -53,7 +53,7 @@ class _PrinterCalibrationWatcherState extends ConsumerState<PrinterCalibrationWa
       printerProvider(widget.machineUUID).selectAs((d) => d.bedScrew?.isActive),
       (previous, next) {
         if (next.valueOrNull == true && !_dialogService.isDialogOpen) {
-          logger.i('Detected bedScrew... opening Dialog');
+          logger.info('Detected bedScrew... opening Dialog');
           _dialogService.show(DialogRequest(
             barrierDismissible: false,
             type: DialogType.bedScrewAdjust,

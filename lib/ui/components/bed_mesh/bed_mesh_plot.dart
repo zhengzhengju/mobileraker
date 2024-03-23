@@ -28,7 +28,7 @@ class BedMeshPlot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    logger.i('Building _MeshPlot $bedMin, $bedMax');
+    logger.info('Building _MeshPlot $bedMin, $bedMax');
 
     if (bedMesh?.profileName?.isNotEmpty != true) {
       return Center(child: const Text('bottom_sheets.bedMesh.no_mesh_loaded').tr());
@@ -167,7 +167,7 @@ class _ZScatterSpot extends ScatterSpot {
 }
 
 LinearGradient gradientForRange(double min, double max, [bool inverse = false, NumScaler? scaler]) {
-  logger.i('Getting gradient for range $min, $max,$inverse');
+  logger.info('Getting gradient for range $min, $max,$inverse');
   scaler ??= NumScaler(
     originMin: min,
     originMax: max,

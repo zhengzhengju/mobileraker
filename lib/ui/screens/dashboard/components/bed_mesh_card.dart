@@ -326,7 +326,7 @@ class _Controller extends _$Controller {
     // TODO : Make this safer and not use requireValue and !
     state.whenData((value) async {
       if (value.bedMesh == null) {
-        logger.w('Bed mesh is null');
+        logger.warning('Bed mesh is null');
         return;
       }
       var result = await _bottomSheetService.show(BottomSheetConfig(
@@ -336,7 +336,7 @@ class _Controller extends _$Controller {
       ));
 
       if (result.confirmed) {
-        logger.i('Bed mesh settings confirmed: ${result.data}');
+        logger.info('Bed mesh settings confirmed: ${result.data}');
 
         var args = result.data as String?;
         // state = state.toLoading();

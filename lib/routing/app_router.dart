@@ -10,6 +10,7 @@ import 'package:common/data/model/hive/machine.dart';
 import 'package:common/service/app_router.dart';
 import 'package:common/service/machine_service.dart';
 import 'package:common/service/setting_service.dart';
+import 'package:common/util/logger.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
@@ -37,6 +38,7 @@ import 'package:mobileraker/ui/screens/tools/components/belt_tuner.dart';
 import 'package:mobileraker_pro/pro_routes.dart';
 import 'package:mobileraker_pro/ui/screens/spoolman/spoolman_page.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:talker_flutter/talker_flutter.dart';
 
 import '../ui/screens/files/details/video_player_page.dart';
 import '../ui/screens/tools/tool_page.dart';
@@ -88,6 +90,7 @@ GoRouter goRouterImpl(GoRouterRef ref) {
     debugLogDiagnostics: false,
     observers: [
       FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
+      TalkerRouteObserver(logger),
     ],
     // redirect: (state) {
     //

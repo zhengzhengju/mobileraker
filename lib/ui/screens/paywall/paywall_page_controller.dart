@@ -31,15 +31,15 @@ class PaywallPageController extends _$PaywallPageController {
     try {
       return _fetchPaywallState();
     } on PlatformException catch (e, s) {
-      logger.e('Error while trying to fetch offerings from revenue cat!', e, s);
+      logger.error('Error while trying to fetch offerings from revenue cat!', e, s);
       rethrow;
     }
   }
 
   Future<PaywallPageState> _fetchPaywallState() async {
     Offerings offerings = await ref.watch(paymentServiceProvider).getOfferings();
-    logger.wtf('Got offerings:${offerings.all.keys}');
-    logger.wtf('Got offerings detailed:$offerings');
+    logger.verbose('Got offerings:${offerings.all.keys}');
+    logger.verbose('Got offerings detailed:$offerings');
 
     Offering? activeOffering = offerings.current;
     // if (kDebugMode) activeOffering = offerings.getOffering('default_v2');
@@ -77,7 +77,7 @@ class PaywallPageController extends _$PaywallPageController {
   onTippingPressed() async {
     // var tipPacket = state.valueOrNull?.tipPackage;
     if (state.valueOrNull?.tipAvailable != true) {
-      logger.w('Tip package is not available');
+      logger.warning('Tip package is not available');
       return;
     }
 
@@ -88,7 +88,7 @@ class PaywallPageController extends _$PaywallPageController {
           ),
         );
     if (dialogResponse?.confirmed == true) {
-      logger.i('User selected tip package: ${dialogResponse?.data}');
+      logger.info('User selected tip package: ${dialogResponse?.data}');
       makePurchase(dialogResponse!.data as Package);
     }
   }
@@ -127,7 +127,7 @@ class PaywallPageController extends _$PaywallPageController {
 
   openManagement() async {
     var managementUrl = ref.read(customerInfoProvider.selectAs((data) => data.managementURL)).valueOrNull;
-    // logger.wtf(managementUrl);
+    // logger.verbose(managementUrl);
     if (managementUrl == null) return;
 
     if (await canLaunchUrlString(managementUrl)) {

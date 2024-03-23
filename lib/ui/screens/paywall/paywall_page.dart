@@ -371,7 +371,7 @@ class _OfferedProductList extends ConsumerWidget {
       );
     }
 
-    logger.e('Got ${packets?.length ?? 0} available Packets: $packets');
+    logger.error('Got ${packets?.length ?? 0} available Packets: $packets');
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0),
@@ -425,10 +425,10 @@ class _InAppPurchaseProduct extends ConsumerWidget {
     var storeProduct = iapPackage.storeProduct;
     var promoStoreProduct = promoPackage?.storeProduct;
 
-    logger.w('SP: $storeProduct');
-    logger.w('PID: ${iapPackage.identifier}');
-    logger.w('SP_promo: $promoStoreProduct');
-    logger.w('PID_PROMO: ${promoPackage?.identifier}');
+    logger.warning('SP: $storeProduct');
+    logger.warning('PID: ${iapPackage.identifier}');
+    logger.warning('SP_promo: $promoStoreProduct');
+    logger.warning('PID_PROMO: ${promoPackage?.identifier}');
 
     Widget? header = _constructHeader(context, storeProduct, promoStoreProduct);
 
@@ -493,8 +493,8 @@ class _SubscriptionProduct extends ConsumerWidget {
     var storeProduct = package.storeProduct;
     var discountOffer = storeProduct.discounts?.firstOrNull;
 
-    logger.w('SP: $storeProduct');
-    logger.w('PID: ${package.identifier}');
+    logger.warning('SP: $storeProduct');
+    logger.warning('PID: ${package.identifier}');
     // ToDo: Intro Prices for IOS
     // var hasIntroPrice = storeProduct.introductoryPrice != null;
     // Purchases.checkTrialOrIntroductoryPriceEligibility(productIdentifiers) // IOS ONLY
@@ -521,8 +521,8 @@ class _SubscriptionProduct extends ConsumerWidget {
     var discountOffer = storeProduct.discounts?.firstOrNull;
     var introOffer = storeProduct.introductoryPrice;
 
-    logger.e('discountOffer: $discountOffer');
-    logger.e('introOffer: $introOffer');
+    logger.error('discountOffer: $discountOffer');
+    logger.error('introOffer: $introOffer');
 
     if (discountOffer == null && introOffer == null) return null;
 
@@ -572,12 +572,12 @@ class _SubscriptionOptionProduct extends ConsumerWidget {
     }));
 
     // Sp: StoreProduct(identifier: mobileraker_supporter_v2.lifetime, description: Earn all supporter benefits forever., title: Lifetime Supporter (Mobileraker), price: 32.99, priceString: €32.99, currencyCode: EUR, introductoryPrice: null, discounts: null, productCategory: ProductCategory.nonSubscription, defaultOption: null, subscriptionOptions: null, presentedOfferingIdentifier: default_v2, subscriptionPeriod: null)
-    logger.w('Sp: ${package.storeProduct}');
+    logger.warning('Sp: ${package.storeProduct}');
 
     var storeProduct = package.storeProduct;
 
     var defaultOption = storeProduct.defaultOption!;
-    logger.w('DO: $defaultOption');
+    logger.warning('DO: $defaultOption');
     var isDiscounted = !defaultOption.isBasePlan;
     var hasFreePhase = defaultOption.freePhase != null;
     var hasIntroPhase = defaultOption.introPhase != null;

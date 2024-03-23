@@ -57,7 +57,7 @@ class _OverviewBody extends ConsumerWidget {
             );
           },
           error: (e, s) {
-            logger.e('Error in OverView', e, StackTrace.current);
+            logger.error('Error in OverView', e, StackTrace.current);
             throw e;
           },
           loading: () => Center(

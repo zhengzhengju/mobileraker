@@ -52,20 +52,20 @@ class AdaptiveMjpegManager implements MjpegManager {
   @override
   void start() {
     active = true;
-    logger.i('AdaptiveMjpegManager started - targFps: $targetFps - ${_uri.obfuscate()}');
+    logger.info('AdaptiveMjpegManager started - targFps: $targetFps - ${_uri.obfuscate()}');
     if (_timer?.isActive ?? false) return;
     _timer = Timer(const Duration(milliseconds: 0), _timerCallback);
   }
 
   @override
   void stop() {
-    logger.i('AdaptiveMjpegManager Stopped MJPEG');
+    logger.info('AdaptiveMjpegManager Stopped MJPEG');
     active = false;
     _timer?.cancel();
   }
 
   _timerCallback() async {
-    // logger.i('TimerTask ${DateTime.now()}');
+    // logger.info('TimerTask ${DateTime.now()}');
     try {
       var response = await _dio.getUri(
         _uri.replace(
@@ -84,7 +84,7 @@ class AdaptiveMjpegManager implements MjpegManager {
       _sendImage(response.data);
       _restartTimer();
     } on DioException catch (error, stack) {
-      logger.w('DioException while requesting MJPEG-Snapshot', error);
+      logger.warning('DioException while requesting MJPEG-Snapshot', error);
       // we ignore those errors in case play/pause is triggers
       if (!_mjpegStreamController.isClosed) {
         _mjpegStreamController.addError(error, stack);
@@ -97,7 +97,7 @@ class AdaptiveMjpegManager implements MjpegManager {
     if (!active) return;
     int diff = stamp.difference(lastRefresh).inMilliseconds;
     int calcTimeoutMillis = frameTimeInMillis - diff;
-    // logger.i('Diff: $diff\n     CalcTi: $calcTimeoutMillis');
+    // logger.info('Diff: $diff\n     CalcTi: $calcTimeoutMillis');
     _timer = Timer(
       Duration(milliseconds: max(0, calcTimeoutMillis)),
       _timerCallback,
@@ -115,6 +115,6 @@ class AdaptiveMjpegManager implements MjpegManager {
   Future<void> dispose() async {
     stop();
     _mjpegStreamController.close();
-    logger.i('_AdaptiveStreamManager DISPOSED');
+    logger.info('_AdaptiveStreamManager DISPOSED');
   }
 }

@@ -111,8 +111,8 @@ setupBoxes() async {
     });
   } catch (e, s) {
     if (e is TypeError) {
-      logger.e('An TypeError occurred while trying to open Boxes...', e);
-      logger.e('Will reset all stored data to resolve this issue!');
+      logger.error('An TypeError occurred while trying to open Boxes...', e);
+      logger.error('Will reset all stored data to resolve this issue!');
       throw MobilerakerStartupException(
         'An unexpected TypeError occurred while parsing the stored app data. Please report this error to the developer. To resolve this issue clear the app storage or reinstall the app.',
         parentException: e,
@@ -120,7 +120,7 @@ setupBoxes() async {
         canResetStorage: true,
       );
     } else if (e is FileSystemException) {
-      logger.e('An FileSystemException(${e.runtimeType}) occured while trying to open Boxes...', e);
+      logger.error('An FileSystemException(${e.runtimeType}) occured while trying to open Boxes...', e);
       throw MobilerakerStartupException(
         'Failed to retrieve app data from system storage. Please restart the app. If the error persists, consider clearing the storage or reinstalling the app.',
         parentException: e,
@@ -128,10 +128,10 @@ setupBoxes() async {
         canResetStorage: true,
       );
     }
-    logger.e('An unexpected error occurred while trying to open Boxes...', e);
+    logger.error('An unexpected error occurred while trying to open Boxes...', e);
     rethrow;
   }
-  logger.i('Completed Hive init');
+  logger.info('Completed Hive init');
 }
 
 Future<Uint8List> _hiveKey() async {
@@ -167,7 +167,7 @@ Future<Uint8List?> _readStorage(FlutterSecureStorage storage) async {
     String? value = await storage.read(key: _hiveKeyName);
     return value?.let(base64Decode);
   } catch (e) {
-    logger.e('Error while reading $_hiveKeyName from storage', e);
+    logger.error('Error while reading $_hiveKeyName from storage', e);
     return null;
   }
 }
@@ -184,7 +184,7 @@ Future<List<Box>> openBoxes() {
 }
 
 Future<void> deleteBoxes() {
-  logger.i('Deleting all boxes');
+  logger.info('Deleting all boxes');
   return Future.wait([
     Hive.deleteBoxFromDisk('printers'),
     Hive.deleteBoxFromDisk('uuidbox'),
@@ -210,21 +210,21 @@ setupLicenseRegistry() {
 
 /// Ensure all services are setup/available/connected if they are also read just once!
 initializeAvailableMachines(Ref ref) async {
-  logger.i('Started initializeAvailableMachines');
+  logger.info('Started initializeAvailableMachines');
   List<Machine> machines = await ref.read(allMachinesProvider.future);
-  logger.i('Received all machines');
+  logger.info('Received all machines');
 
   await Future.wait(
     machines.map((e) => ref.read(machineProvider(e.uuid).future)),
   );
-  logger.i('initialized all machineProviders');
+  logger.info('initialized all machineProviders');
   // for (var machine in machines) {
-  //   logger.i('Init for ${machine.name}(${machine.uuid})');
+  //   logger.info('Init for ${machine.name}(${machine.uuid})');
   //   container.read(klipperServiceProvider(machine.uuid));
   //   container.read(printerServiceProvider(machine.uuid));
   // }
 
-  logger.i('Completed initializeAvailableMachines');
+  logger.info('Completed initializeAvailableMachines');
 }
 
 @riverpod
@@ -287,7 +287,7 @@ Stream<StartUpStep> warmupProvider(WarmupProviderRef ref) async* {
   // await for the initial rout provider to be ready and setup!
   yield StartUpStep.goRouter;
   await ref.read(initialRouteProvider.future);
-  logger.i('Completed initialRoute init');
+  logger.info('Completed initialRoute init');
   // Wait for the machines to be ready
   yield StartUpStep.initMachines;
   await initializeAvailableMachines(ref);
@@ -297,7 +297,7 @@ Stream<StartUpStep> warmupProvider(WarmupProviderRef ref) async* {
 
   yield StartUpStep.workManager;
   await workerManager.init();
-  logger.i('Completed init for workManager');
+  logger.info('Completed init for workManager');
 
   yield StartUpStep.complete;
 }

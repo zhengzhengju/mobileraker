@@ -137,7 +137,7 @@ class FileService {
   final Dio _dio;
 
   Future<List<FileRoot>> fetchRoots() async {
-    logger.i('Fetching roots');
+    logger.info('Fetching roots');
 
     try {
       RpcResponse blockingResp = await _jRpcClient.sendJRpcMethod('server.files.roots');
@@ -148,13 +148,13 @@ class FileService {
         return FileRoot.fromJson(element);
       });
     } on JRpcError catch (e) {
-      logger.w('Error while fetching roots', e);
+      logger.warning('Error while fetching roots', e);
       throw FileFetchException('Jrpc error while trying to fetch roots.', parent: e);
     }
   }
 
   Future<FolderContentWrapper> fetchDirectoryInfo(String path, [bool extended = false]) async {
-    logger.i('Fetching for `$path` [extended:$extended]');
+    logger.info('Fetching for `$path` [extended:$extended]');
 
     try {
       RpcResponse blockingResp =
@@ -182,7 +182,7 @@ class FileService {
   }
 
   Future<GCodeFile> getGCodeMetadata(String filename) async {
-    logger.i('Getting meta for file: `$filename`');
+    logger.info('Getting meta for file: `$filename`');
 
     try {
       RpcResponse blockingResp =
@@ -195,7 +195,7 @@ class FileService {
   }
 
   Future<FileActionResponse> createDir(String filePath) async {
-    logger.i('Creating Folder "$filePath"');
+    logger.info('Creating Folder "$filePath"');
 
     try {
       var rpcResponse = await _jRpcClient.sendJRpcMethod('server.files.post_directory', params: {'path': filePath});
@@ -206,7 +206,7 @@ class FileService {
   }
 
   Future<FileActionResponse> deleteFile(String filePath) async {
-    logger.i('Deleting File "$filePath"');
+    logger.info('Deleting File "$filePath"');
 
     try {
       RpcResponse rpcResponse =
@@ -218,7 +218,7 @@ class FileService {
   }
 
   Future<FileActionResponse> deleteDirForced(String filePath) async {
-    logger.i('Deleting Folder-Forced "$filePath"');
+    logger.info('Deleting Folder-Forced "$filePath"');
     try {
       RpcResponse rpcResponse =
           await _jRpcClient.sendJRpcMethod('server.files.delete_directory', params: {'path': filePath, 'force': true});
@@ -229,7 +229,7 @@ class FileService {
   }
 
   Future<FileActionResponse> moveFile(String origin, String destination) async {
-    logger.i('Moving file from $origin to $destination');
+    logger.info('Moving file from $origin to $destination');
 
     try {
       RpcResponse rpcResponse =
@@ -248,11 +248,11 @@ class FileService {
     final BaseOptions isolateSafeBaseOptions = _dio.options.copyWith();
     IsolateNameServer.registerPortWithName(receiverPort.sendPort, isolateSafePortName);
     try {
-      // logger.i('Will try to download $filePath to file $file');
+      // logger.info('Will try to download $filePath to file $file');
       //
       // var download = workerManager.execute<FileDownload>(() async {
       //   await setupIsolateLogger();
-      //   logger.i('Hello from worker ${file.path} - my port will be: $isolateSafePortName');
+      //   logger.info('Hello from worker ${file.path} - my port will be: $isolateSafePortName');
       //   var port = IsolateNameServer.lookupPortByName(isolateSafePortName)!;
       //
       //   return await isolateDownloadFile(
@@ -265,7 +265,7 @@ class FileService {
       //
       //
       // yield* receiverPort.takeUntil(download.asStream()).cast<FileDownload>();
-      // logger.i('blub');
+      // logger.info('blub');
       // yield await download;
 
       // This code is not using a seperate isolate. Lets see how it goes lol
@@ -277,26 +277,26 @@ class FileService {
         // options: Options(receiveTimeout: Duration(seconds: 300)), // This is requried because of a bug in dio
         onReceiveProgress: (received, total) {
           if (total <= 0) return;
-          logger.i('Progress for $filePath: ${received / total * 100}');
+          logger.info('Progress for $filePath: ${received / total * 100}');
           ctrler.add(FileDownloadProgress(received / total));
         },
       ).then((response) {
         ctrler.add(FileDownloadComplete(file));
       }).catchError((e, s) {
-        logger.e('Error while downloading file cought in catchError', e);
+        logger.error('Error while downloading file cought in catchError', e);
         ctrler.addError(e, s);
       }).then((value) => ctrler.close());
 
       yield* ctrler.stream;
-      logger.i('File download completed');
+      logger.info('File download completed');
     } catch (e) {
       // This is only required for the isolate version, the non isolate version should handle the error in the catchError
-      logger.e('Error while downloading file', e);
+      logger.error('Error while downloading file', e);
       rethrow;
     } finally {
       IsolateNameServer.removePortNameMapping(isolateSafePortName);
       receiverPort.close();
-      logger.i('Removed port mapping and closed the port for $isolateSafePortName');
+      logger.info('Removed port mapping and closed the port for $isolateSafePortName');
     }
   }
 
@@ -305,7 +305,7 @@ class FileService {
     List<String> fileSplit = filePath.split('/');
     String root = fileSplit.removeAt(0);
 
-    logger.i('Trying upload of $filePath');
+    logger.info('Trying upload of $filePath');
 
     var data = FormData.fromMap({
       'root': root,
@@ -396,15 +396,15 @@ Future<FileDownload> isolateDownloadFile({
   bool overWriteLocal = false,
 }) async {
   var dio = Dio(dioBaseOptions);
-  logger.i(
+  logger.info(
       'Created new dio instance for download with options: ${dioBaseOptions.connectTimeout}, ${dioBaseOptions.receiveTimeout}, ${dioBaseOptions.sendTimeout}');
   try {
     var file = File(savePath);
     if (!overWriteLocal && await file.exists()) {
-      logger.i('File already exists, skipping download');
+      logger.info('File already exists, skipping download');
       return FileDownloadComplete(file);
     }
-    logger.i('Starting download of $urlPath to $savePath');
+    logger.info('Starting download of $urlPath to $savePath');
     var progress = FileDownloadProgress(0);
     port.send(progress);
     await file.create(recursive: true);
@@ -418,15 +418,15 @@ Future<FileDownload> isolateDownloadFile({
       },
     );
 
-    logger.i('Download complete');
+    logger.info('Download complete');
     return FileDownloadComplete(file);
   } on DioException {
     rethrow;
   } catch (e) {
-    logger.e('Error inside of isolate', e);
+    logger.error('Error inside of isolate', e);
     throw MobilerakerException('Error while downloading file', parentException: e);
   } finally {
-    logger.i('Closing dio instance');
+    logger.info('Closing dio instance');
     dio.close();
   }
 }

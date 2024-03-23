@@ -30,7 +30,7 @@ class _SupporterAdController extends _$SupporterAdController {
 
     DateTime? stamp = _boxSettings.get(_key);
 
-    logger.i('Last dismiss of Supporter AD: $stamp');
+    logger.info('Last dismiss of Supporter AD: $stamp');
 
     return stamp == null || DateTime.now().difference(stamp).inDays > 20;
   }

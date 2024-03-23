@@ -98,14 +98,14 @@ class NotificationService {
 
       _initializeMachineRepoListener();
 
-      logger.i('Completed NotificationService init');
+      logger.info('Completed NotificationService init');
     } catch (e, s) {
       FirebaseCrashlytics.instance.recordError(
         e,
         s,
         reason: 'Error while setting up notificationService',
       );
-      logger.w('Error encountered while trying to setup the Notification Service.', e, s);
+      logger.warning('Error encountered while trying to setup the Notification Service.', e, s);
     } finally {
       _initialized.complete(true);
     }
@@ -129,18 +129,18 @@ class NotificationService {
     // }
     _setupMachineFcmUpdater(machine);
     _registerLocalMessageHandlingForMachine(machine);
-    logger.i('Added stream-listener for ${machine.logName}');
+    logger.info('Added stream-listener for ${machine.logName}');
   }
 
   void onMachineRemoved(String uuid) {
     _notifyAPI.removeChannel('$uuid-statusUpdates');
     _notifyAPI.removeChannel('$uuid-progressUpdates');
     _fcmUpdateListeners.remove(uuid)?.close();
-    logger.i('Removed notifications channels and stream-listener for UUID=$uuid');
+    logger.info('Removed notifications channels and stream-listener for UUID=$uuid');
   }
 
   Future<bool> isFirebaseAvailable() async => _notifyFCM.isFirebaseAvailable.onError((e, _) {
-        logger.w('Firebase is not available for FCM...', e);
+        logger.warning('Firebase is not available for FCM...', e);
         return false;
       });
 
@@ -148,7 +148,7 @@ class NotificationService {
 
   Future<bool> _initialRequestPermission() async {
     bool notificationAllowed = await hasNotificationPermission();
-    logger.i('Notifications are permitted: $notificationAllowed');
+    logger.info('Notifications are permitted: $notificationAllowed');
 
     if (_settingsService.readBool(UtilityKeys.requestedNotifyPermission, true)) {
       return notificationAllowed;
@@ -179,14 +179,14 @@ class NotificationService {
   }
 
   Future<void> _initializeNotificationListeners() {
-    logger.i('Initializing notification listeners');
+    logger.info('Initializing notification listeners');
     return _notifyAPI.setListeners(onActionReceivedMethod: _onActionReceivedMethod);
   }
 
   void _initializeMachineRepoListener() {
-    logger.i('Initializing machineRepoListener');
+    logger.info('Initializing machineRepoListener');
     _machineRepoUpdateListener = _machineService.machineModelEvents.listen((event) {
-      logger.i('Received machineModelEvents: ${event.runtimeType}(${event.key}:${event.data}');
+      logger.info('Received machineModelEvents: ${event.runtimeType}(${event.key}:${event.data}');
 
       switch (event) {
         case ModelEventInsert<Machine> event:
@@ -231,12 +231,12 @@ class NotificationService {
         null,
         channels,
         channelGroups: groups);
-    logger.i('Successfully initialized AwesomeNotifications and created channels and groups!');
+    logger.info('Successfully initialized AwesomeNotifications and created channels and groups!');
   }
 
   Future<void> _initializeRemoteMessaging(
       List<String> licenseKeys, List<Machine> allMachines, List<Machine> hiddenMachines) async {
-    logger.i('Initializing remote messaging');
+    logger.info('Initializing remote messaging');
     hiddenMachines.forEach(_wipeFCMOnPrinterOnceConnected);
     if (await isFirebaseAvailable()) {
       await _notifyFCM.initialize(
@@ -258,7 +258,7 @@ class NotificationService {
     // No need to close this sub, since I close the port!
     _notificationTapPort.listen(_onNotificationTapPortMessage, onError: _onNotificationTapPortError);
     _fcmTokenUpdatePort.listen(_onFcmTokenUpdatePortMessage, onError: _onFcmTokenUpdatePortError);
-    logger.i('Successfully initialized ports!');
+    logger.info('Successfully initialized ports!');
   }
 
   @pragma('vm:entry-point')
@@ -267,35 +267,35 @@ class NotificationService {
     if (port != null) {
       port.send(receivedAction.toMap());
     } else {
-      logger.e('Received an action from the onActionReceivedMethod Port but the port is null!');
+      logger.error('Received an action from the onActionReceivedMethod Port but the port is null!');
     }
   }
 
   Future<void> _onNotificationTapPortMessage(dynamic data) async {
     if (data is! Map<String, dynamic>) {
-      logger.w(
+      logger.warning(
           'Received object from the onNotificationTap Port is not of type: Map<String, dynamic> it is type:${data.runtimeType}');
       return;
     }
 
     final receivedAction = ReceivedAction().fromMap(data);
     var payload = receivedAction.payload;
-    logger.i('Received payload from notification port: $payload');
+    logger.info('Received payload from notification port: $payload');
 
     if (payload?.containsKey('printerId') == true) {
       var machine = await _machineService.fetch(payload!['printerId']!);
       if (machine != null) {
         await _ref.read(selectedMachineServiceProvider).selectMachine(machine);
-        logger.i(
+        logger.info(
             'Successfully switched to printer ${machine.logName} that was contained in the notification\'s ReceivedAction');
         return;
       }
     }
-    logger.i('No action taken from the ReceivedAction');
+    logger.info('No action taken from the ReceivedAction');
   }
 
   Future<void> _onNotificationTapPortError(error) async {
-    logger.e('Received an error from the onNotificationTap Port', e);
+    logger.error('Received an error from the onNotificationTap Port', e);
   }
 
   @pragma('vm:entry-point')
@@ -304,22 +304,22 @@ class NotificationService {
     if (port != null) {
       port.send(firebaseToken);
     } else {
-      logger.e('Received an action from the onActionReceivedMethod Port but the port is null!');
+      logger.error('Received an action from the onActionReceivedMethod Port but the port is null!');
     }
   }
 
   Future<void> _onFcmTokenUpdatePortMessage(dynamic token) async {
     if (token is! String) {
-      logger.w(
+      logger.warning(
           'Received object from the onNotificationTap Port is not of type: ReceivedAction it is type:${token.runtimeType}');
       return;
     }
-    logger.i('Token from FCM updated $token');
+    logger.info('Token from FCM updated $token');
     _ref.invalidate(fcmTokenProvider);
   }
 
   Future<void> _onFcmTokenUpdatePortError(error) async {
-    logger.e('Received an error from the onNotificationTap Port', e);
+    logger.error('Received an error from the onNotificationTap Port', e);
   }
 
   @pragma('vm:entry-point')
@@ -367,17 +367,17 @@ class NotificationService {
   }
 
   void _setupMachineFcmUpdater(Machine machine) {
-    logger.i('Setting up FCM updater for ${machine.logNameExtended}');
+    logger.info('Setting up FCM updater for ${machine.logNameExtended}');
 
     var subscription =
         _ref.listen(klipperProvider(machine.uuid).selectAs((data) => data.klippyState), (previous, next) async {
       if (next.valueOrFullNull == KlipperState.ready) {
         var fcmToken = await _notifyFCM.requestFirebaseAppToken();
         try {
-          logger.i('Updating FCM settings on ${machine.name}(${machine.wsUri.obfuscate()})');
+          logger.info('Updating FCM settings on ${machine.name}(${machine.wsUri.obfuscate()})');
           await _machineService.updateMachineFcmSettings(machine, fcmToken);
         } catch (e, s) {
-          logger.w('Could not updateMachineFcmSettings on ${machine.name}(${machine.wsUri.obfuscate()})', e, s);
+          logger.warning('Could not updateMachineFcmSettings on ${machine.name}(${machine.wsUri.obfuscate()})', e, s);
         }
       }
     });
@@ -387,7 +387,7 @@ class NotificationService {
   }
 
   Future<void> _wipeFCMOnPrinterOnceConnected(Machine machine) async {
-    logger.i('Wiping FCM data on ${machine.name}(${machine.wsUri.obfuscate()})');
+    logger.info('Wiping FCM data on ${machine.name}(${machine.wsUri.obfuscate()})');
     var mProvider = machineProvider(machine.uuid);
     var keepAliveExternally = _ref.keepAliveExternally(mProvider);
     try {
@@ -396,10 +396,10 @@ class NotificationService {
       await _ref.read(mProvider.future);
       // Wait until connected
       await _ref.readWhere<KlipperInstance>(klipperProvider(machine.uuid), (c) => c.klippyState == KlipperState.ready);
-      logger.i('Jrpc Client of ${machine.name}(${machine.wsUri}) is connected, WIPING FCM data on printer now!');
+      logger.info('Jrpc Client of ${machine.name}(${machine.wsUri}) is connected, WIPING FCM data on printer now!');
       await _machineService.removeFCMCapability(machine);
     } catch (e, s) {
-      logger.w('Could not WIPE fcm data on ${machine.name}(${machine.wsUri.obfuscate()})', e, s);
+      logger.warning('Could not WIPE fcm data on ${machine.name}(${machine.wsUri.obfuscate()})', e, s);
     } finally {
       // Since I initited the provider before and all hidden machines dont have a machineProvider setup, also remove it again!
       keepAliveExternally.close();
@@ -408,7 +408,7 @@ class NotificationService {
   }
 
   dispose() {
-    logger.e('NEVER DISPOSE THIS SERVICE!');
+    logger.error('NEVER DISPOSE THIS SERVICE!');
     _notificationTapPort.close();
     _machineRepoUpdateListener?.cancel();
 

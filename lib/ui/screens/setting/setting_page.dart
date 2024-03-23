@@ -9,7 +9,6 @@ import 'package:common/data/model/hive/progress_notification_mode.dart';
 import 'package:common/service/firebase/analytics.dart';
 import 'package:common/service/misc_providers.dart';
 import 'package:common/service/setting_service.dart';
-import 'package:common/service/ui/dialog_service_interface.dart';
 import 'package:common/service/ui/theme_service.dart';
 import 'package:common/ui/components/drawer/nav_drawer_view.dart';
 import 'package:common/ui/theme/theme_pack.dart';
@@ -25,9 +24,9 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:flutter_icons/flutter_icons.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:mobileraker/service/ui/dialog_service_impl.dart';
 import 'package:mobileraker/ui/components/app_version_text.dart';
 import 'package:mobileraker/ui/screens/setting/setting_controller.dart';
+import 'package:talker_flutter/talker_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 class SettingPage extends ConsumerWidget {
@@ -382,8 +381,13 @@ class _DeveloperSection extends ConsumerWidget {
           ),
           child: const Text('Debug-Logs'),
           onPressed: () {
-            var dialogService = ref.read(dialogServiceProvider);
-            dialogService.show(DialogRequest(type: DialogType.logging));
+            // var dialogService = ref.read(dialogServiceProvider);
+            // dialogService.show(DialogRequest(type: DialogType.logging));
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => TalkerScreen(appBarTitle: 'Logs', talker: logger),
+              ),
+            );
           },
         ),
       ],
@@ -788,7 +792,7 @@ class _OptOutOfAdPush extends ConsumerWidget {
       subtitle: const Text('pages.setting.notification.opt_out_marketing_helper').tr(),
       onChanged: (b) {
         var val = b ?? true;
-        logger.i('User opted out of marketing notifications: ${!val}');
+        logger.info('User opted out of marketing notifications: ${!val}');
         ref.read(analyticsProvider).updatedAdOptOut(!val);
         ref.read(settingServiceProvider).writeBool(
               AppSettingKeys.receiveMarketingNotifications,

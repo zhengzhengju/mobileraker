@@ -52,31 +52,31 @@ class WebcamService {
   final WebcamInfoRepository _webcamInfoRepository;
 
   Future<List<WebcamInfo>> listWebcamInfos() async {
-    logger.i('List Webcams request...');
+    logger.info('List Webcams request...');
     try {
       var cams = await _webcamInfoRepository.fetchAll();
-      logger.i('Got ${cams.length} webcams');
+      logger.info('Got ${cams.length} webcams');
 
       return cams;
     } catch (e, s) {
-      logger.e('Error while listing cams', e, s);
+      logger.error('Error while listing cams', e, s);
       throw MobilerakerException('Unable to list all webcams', parentException: e);
     }
   }
 
   Future<void> addOrModifyWebcamInfoInBulk(List<WebcamInfo> cams) async {
-    logger.i('BULK ADD/MODIFY Webcams "${cams.length}" request...');
+    logger.info('BULK ADD/MODIFY Webcams "${cams.length}" request...');
     try {
       await Future.wait(cams.map((e) => addOrModifyWebcamInfo(e)));
     } catch (e, s) {
-      logger.e('Error while saving cams as in Bulk', e, s);
+      logger.error('Error while saving cams as in Bulk', e, s);
       throw MobilerakerException('Error while trying to add or modify webcams in bulk!',
           parentException: e, parentStack: s);
     }
   }
 
   Future<WebcamInfo> getWebcamInfo(String uuid) async {
-    logger.i('GET Webcam "$uuid" request...');
+    logger.info('GET Webcam "$uuid" request...');
 
     try {
       return await _webcamInfoRepository.get(uuid);
@@ -86,22 +86,22 @@ class WebcamService {
   }
 
   Future<void> addOrModifyWebcamInfo(WebcamInfo cam) async {
-    logger.i('ADD/MODIFY Webcam "${cam.name}" request...');
+    logger.info('ADD/MODIFY Webcam "${cam.name}" request...');
     if (cam.isReadOnly) {
-      logger.w('Webcam "${cam.name}" is a config webcam. Skipping...');
+      logger.warning('Webcam "${cam.name}" is a config webcam. Skipping...');
       return;
     }
 
     try {
       await _webcamInfoRepository.addOrUpdate(cam);
     } catch (e) {
-      logger.e('Error while saving cam', e);
+      logger.error('Error while saving cam', e);
       throw MobilerakerException('Unable to add/update webcam info for ${cam.uuid}', parentException: e);
     }
   }
 
   Future<List<WebcamInfo>> deleteWebcamInfoInBulk(List<WebcamInfo> cams) {
-    logger.i('BULK REMOVE Webcams "${cams.length}" request...');
+    logger.info('BULK REMOVE Webcams "${cams.length}" request...');
     try {
       return Future.wait(cams.map((e) => deleteWebcamInfo(e)));
     } catch (e) {
@@ -110,7 +110,7 @@ class WebcamService {
   }
 
   Future<WebcamInfo> deleteWebcamInfo(WebcamInfo cam) async {
-    logger.i('DELETE Webcam "${cam.name}" request...');
+    logger.info('DELETE Webcam "${cam.name}" request...');
     try {
       return await _webcamInfoRepository.remove(cam.uuid);
     } catch (e) {

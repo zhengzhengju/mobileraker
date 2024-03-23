@@ -47,7 +47,7 @@ class FansCard extends ConsumerWidget {
     if (showLoading) {
       return const _FansCardLoading();
     }
-    // logger.i('Rebuilding fans card');
+    // logger.info('Rebuilding fans card');
 
     return Card(
       child: Column(
@@ -132,7 +132,7 @@ class _CardTitle extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     var model = ref.watch(_fansCardControllerProvider(machineUUID).selectRequireValue((data) => data.fans.length));
 
-    // logger.i('Rebuilding fans card title');
+    // logger.info('Rebuilding fans card title');
 
     return ListTile(
       leading: const Icon(FlutterIcons.fan_mco),
@@ -148,7 +148,7 @@ class _CardBody extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // logger.i('Rebuilding fans card body');
+    // logger.info('Rebuilding fans card body');
 
     var fansCount = ref.watch(_fansCardControllerProvider(machineUUID).selectRequireValue((data) => data.fans.length));
     var hasPrintFan =
@@ -185,7 +185,7 @@ class _Fan extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     var fan = ref.watch(fanProvider);
 
-    // logger.i('Rebuilding fan card for $fan');
+    // logger.info('Rebuilding fan card for $fan');
 
     if (fan == null) {
       return const SizedBox.shrink();
@@ -279,7 +279,7 @@ class _FansCardController extends _$FansCardController {
 
   @override
   Stream<_Model> build(String machineUUID) async* {
-    // logger.i('Rebuilding fansCardController for $machineUUID');
+    // logger.info('Rebuilding fansCardController for $machineUUID');
 
     // This might be WAY to fine grained. Riverpod will check based on the emitted value if the widget should rebuild.
     // This means that if the value is the same, the widget will not rebuild.

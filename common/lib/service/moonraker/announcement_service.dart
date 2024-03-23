@@ -47,7 +47,7 @@ class AnnouncementService {
   final JsonRpcClient _jRpcClient;
 
   Future<List<AnnouncementEntry>> listAnnouncements([bool includeDismissed = false]) async {
-    logger.i('List Announcements request...');
+    logger.info('List Announcements request...');
 
     try {
       RpcResponse rpcResponse = await _jRpcClient.sendJRpcMethod('server.announcements.list',
@@ -62,7 +62,7 @@ class AnnouncementService {
   }
 
   Future<String> dismissAnnouncement(String entryId, [int? wakeTime]) async {
-    logger.i('Trying to dismiss announcement `$entryId`');
+    logger.info('Trying to dismiss announcement `$entryId`');
 
     try {
       RpcResponse rpcResponse = await _jRpcClient.sendJRpcMethod('server.announcements.list',
@@ -82,12 +82,12 @@ class AnnouncementService {
   }
 
   _onNotifyAnnouncementDismissed(Map<String, dynamic> rawMessage) {
-    logger.i('Announcement dismissed event!!!');
+    logger.info('Announcement dismissed event!!!');
     listAnnouncements().then(_announcementsStreamCtrler.add);
   }
 
   _onNotifyAnnouncementWake(Map<String, dynamic> rawMessage) {
-    logger.i('Announcement wake event!!!');
+    logger.info('Announcement wake event!!!');
     listAnnouncements().then(_announcementsStreamCtrler.add);
   }
 

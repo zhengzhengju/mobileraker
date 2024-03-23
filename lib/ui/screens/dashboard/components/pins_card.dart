@@ -63,7 +63,7 @@ class PinsCard extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    logger.i('Rebuilding pins card');
+    logger.info('Rebuilding pins card');
 
     return Card(
       child: Column(
@@ -148,7 +148,7 @@ class _CardTitle extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     var model = ref.watch(_pinsCardControllerProvider(machineUUID).selectRequireValue((data) => data.total));
 
-    logger.i('Rebuilding output card title');
+    logger.info('Rebuilding output card title');
 
     return ListTile(
       leading: const Icon(FlutterIcons.led_outline_mco),
@@ -164,7 +164,7 @@ class _CardBody extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    logger.i('Rebuilding outputs card body');
+    logger.info('Rebuilding outputs card body');
 
     var pinsCount = ref.watch(_pinsCardControllerProvider(machineUUID).selectRequireValue((data) => data.pins.length));
     var ledsCount = ref.watch(_pinsCardControllerProvider(machineUUID).selectRequireValue((data) => data.leds.length));
@@ -220,7 +220,7 @@ class _Output extends ConsumerWidget {
 
     var controller = ref.watch(_pinsCardControllerProvider(machineUUID).notifier);
 
-    logger.i('Rebuilding pin card for ${pin.name}');
+    logger.info('Rebuilding pin card for ${pin.name}');
 
     if (pinConfig?.pwm == false) {
       return CardWithSwitch(
@@ -378,7 +378,7 @@ class _Led extends ConsumerWidget {
 
     var controller = ref.watch(_pinsCardControllerProvider(machineUUID).notifier);
 
-    logger.i('Rebuilding led card for ${led.name}');
+    logger.info('Rebuilding led card for ${led.name}');
 
     return CardWithButton(
       buttonChild: const Text('general.set').tr(),
@@ -431,7 +431,7 @@ class _FilamentSensor extends ConsumerWidget {
 
     var controller = ref.watch(_pinsCardControllerProvider(machineUUID).notifier);
 
-    logger.i('Rebuilding filament sensor card for ${sensor.name}');
+    logger.info('Rebuilding filament sensor card for ${sensor.name}');
 
     return CardWithSwitch(
       value: sensor.enabled,
@@ -490,7 +490,7 @@ class _PinsCardController extends _$PinsCardController {
 
   @override
   Stream<_Model> build(String machineUUID) async* {
-    logger.i('Rebuilding pinsCardController for $machineUUID');
+    logger.info('Rebuilding pinsCardController for $machineUUID');
 
     // This might be WAY to fine grained. Riverpod will check based on the emitted value if the widget should rebuild.
     // This means that if the value is the same, the widget will not rebuild.

@@ -43,7 +43,7 @@ class PullToRefreshPrinterConsumer extends _$PullToRefreshPrinterConsumer {
     // late ProviderSubscription sub;
     ClientType clientType = ref.read(jrpcClientTypeProvider(selMachine.uuid));
 
-    logger.i('Refreshing $clientType was PULL to REFRESH');
+    logger.info('Refreshing $clientType was PULL to REFRESH');
 
     ProviderSubscription<PrinterService>? printerServiceKeepAlive;
     ProviderSubscription<KlippyService>? klippyServiceKeepAlive;
@@ -54,7 +54,7 @@ class PullToRefreshPrinterConsumer extends _$PullToRefreshPrinterConsumer {
       await klippyServiceKeepAlive.read().refreshKlippy();
       var read = ref.read(klipperProvider(selMachine.uuid));
       if (!read.hasError && read.hasValue && read.requireValue.klippyCanReceiveCommands) {
-        logger.i(
+        logger.info(
           'Klippy reported ready and connected, will try to refresh printer',
         );
         await printerServiceKeepAlive.read().refreshPrinter();
@@ -62,7 +62,7 @@ class PullToRefreshPrinterConsumer extends _$PullToRefreshPrinterConsumer {
 
       refreshController.refreshCompleted();
     } catch (e) {
-      logger.w('Error while trying to refresh printer', e);
+      logger.warning('Error while trying to refresh printer', e);
       refreshController.refreshFailed();
     } finally {
       printerServiceKeepAlive?.close();

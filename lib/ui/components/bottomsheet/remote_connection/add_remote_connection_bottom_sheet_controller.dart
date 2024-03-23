@@ -78,7 +78,7 @@ class AddRemoteConnectionBottomSheetController extends _$AddRemoteConnectionBott
 
       ref.read(goRouterProvider).pop(BottomSheetResult.confirmed(result));
     } on OctoEverywhereException catch (e, s) {
-      logger.e(
+      logger.error(
         'Error while trying to Link machine with UUID ${_machine.uuid} to Octo',
         e,
         s,
@@ -101,7 +101,7 @@ class AddRemoteConnectionBottomSheetController extends _$AddRemoteConnectionBott
 
       ref.read(goRouterProvider).pop(BottomSheetResult.confirmed(result));
     } on OctoEverywhereException catch (e, s) {
-      logger.e(
+      logger.error(
         'Error while trying to Link machine with UUID ${_machine.uuid} to Obico',
         e,
         s,

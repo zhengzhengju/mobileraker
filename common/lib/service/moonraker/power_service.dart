@@ -78,7 +78,7 @@ class PowerService {
 
   /// https://moonraker.readthedocs.io/en/latest/web_api/#get-device-list
   Future<List<PowerDevice>> getDeviceList() async {
-    logger.i('Fetching [power] devices!');
+    logger.info('Fetching [power] devices!');
     RpcResponse rpcResponse = await _jRpcClient.sendJRpcMethod('machine.device_power.devices');
     List<Map<String, dynamic>> devices = rpcResponse.result['devices'].cast<Map<String, dynamic>>();
     return List.generate(devices.length, (index) => PowerDevice.fromJson(devices[index]), growable: false);
@@ -89,12 +89,12 @@ class PowerService {
     try {
       RpcResponse rpcResponse = await _jRpcClient
           .sendJRpcMethod('machine.device_power.post_device', params: {'device': deviceName, 'action': state.name});
-      logger.i('Setting [power] device "$deviceName" -> $state!');
+      logger.info('Setting [power] device "$deviceName" -> $state!');
 
       Map<String, dynamic> result = rpcResponse.result;
       return PowerState.tryFromJson(result[deviceName]) ?? PowerState.off;
     } on JRpcError catch (e, s) {
-      logger.e('Error while trying to set state of [power] device with name "$deviceName"!', s);
+      logger.error('Error while trying to set state of [power] device with name "$deviceName"!', s);
       return PowerState.off;
     }
   }
@@ -104,12 +104,12 @@ class PowerService {
     try {
       RpcResponse rpcResponse =
           await _jRpcClient.sendJRpcMethod('machine.device_power.get_device', params: {'device': deviceName});
-      logger.i('Fetching [power] device state of "$deviceName" !');
+      logger.info('Fetching [power] device state of "$deviceName" !');
 
       Map<String, dynamic> result = rpcResponse.result;
       return PowerState.tryFromJson(result[deviceName]) ?? PowerState.off;
     } on JRpcError catch (e, s) {
-      logger.e('Error while trying to fetch state of [power] device with name "$deviceName"!', s);
+      logger.error('Error while trying to fetch state of [power] device with name "$deviceName"!', s);
       return PowerState.off;
     }
   }
@@ -119,7 +119,7 @@ class PowerService {
       var devices = await getDeviceList();
       _current = devices;
     } on JRpcError catch (e, s) {
-      logger.e('Error while trying to fetch [power] devices!', e);
+      logger.error('Error while trying to fetch [power] devices!', e);
       if (!_devicesStreamCtler.isClosed) {
         _devicesStreamCtler.addError(e, s);
       }
@@ -137,7 +137,7 @@ class PowerService {
       return parsed.firstWhere((p) => p.name == e.name, orElse: () => e);
     }).toList(growable: false);
 
-    logger.v('Updated powerDevices to: $result');
+    logger.verbose('Updated powerDevices to: $result');
     _current = result;
   }
 

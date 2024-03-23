@@ -42,7 +42,7 @@ class FirmwareRetractionCard extends ConsumerWidget {
 
     var model = ref.watch(_firmwareRetractionCardControllerProvider(machineUUID).selectAs((data) => data.showCard));
 
-    logger.i('Rebuilding FirmwareRetractionCard for $machineUUID');
+    logger.info('Rebuilding FirmwareRetractionCard for $machineUUID');
 
     return switch (model) {
       AsyncValue(hasValue: true, value: false) => const SizedBox.shrink(),

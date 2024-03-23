@@ -33,7 +33,7 @@ class DevPage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    logger.i('REBUILIDNG DEV PAGE!');
+    logger.info('REBUILIDNG DEV PAGE!');
     var selMachine = ref.watch(selectedMachineProvider).value;
 
     var systemInfo = ref.watch(klipperSystemInfoProvider(selMachine!.uuid));
@@ -115,11 +115,11 @@ class DevPage extends HookConsumerWidget {
 
   stateActivity() async {
     final liveActivitiesPlugin = LiveActivities();
-    logger.i('#1');
+    logger.info('#1');
     await liveActivitiesPlugin.init(appGroupId: 'group.mobileraker.liveactivity');
-    logger.i('#2');
+    logger.info('#2');
     var activityState = await liveActivitiesPlugin.getActivityState('123123');
-    logger.i('Got state message: $activityState');
+    logger.info('Got state message: $activityState');
   }
 
   startLiveActivity(WidgetRef ref) async {
@@ -127,7 +127,7 @@ class DevPage extends HookConsumerWidget {
     var liveActivities = ref.read(liveActivityProvider);
 
     // _liveActivitiesPlugin.activityUpdateStream.listen((event) {
-    //   logger.wtf('xxxLiveActivityUpdate: $event');
+    //   logger.verbose('xxxLiveActivityUpdate: $event');
     // });
 
     Map<String, dynamic> data = {
@@ -153,10 +153,10 @@ class DevPage extends HookConsumerWidget {
       data,
       removeWhenAppIsKilled: true,
     );
-    logger.i('Created activity with id: $activityId');
+    logger.info('Created activity with id: $activityId');
     _bla = activityId;
     var pushToken = await liveActivities.getPushToken(activityId!);
-    logger.i('LiveActivity PushToken: $pushToken');
+    logger.info('LiveActivity PushToken: $pushToken');
   }
 
   updateLiveActivity(WidgetRef ref) async {
@@ -164,7 +164,7 @@ class DevPage extends HookConsumerWidget {
 
     var liveActivities = ref.read(liveActivityProvider);
     // _liveActivitiesPlugin.activityUpdateStream.listen((event) {
-    //   logger.wtf('xxxLiveActivityUpdate: $event');
+    //   logger.verbose('xxxLiveActivityUpdate: $event');
     // });
 
     Map<String, dynamic> data = {
@@ -190,7 +190,7 @@ class DevPage extends HookConsumerWidget {
       _bla!,
       data,
     );
-    logger.i('UPDATED activity with id: $_bla -> $activityId');
+    logger.info('UPDATED activity with id: $_bla -> $activityId');
   }
 
 //   var test = 44.4;
@@ -202,8 +202,8 @@ class DevPage extends HookConsumerWidget {
 //     await setupIsolateLogger();
 //     return isolateDownloadFile(port: port, targetUri: dowloadUri, downloadPath: tmpFile.path);
 //   }, onMessage: (message) {
-//     logger.i('Got new message from port: $message');
-//   }).then((value) => logger.i('Execute done: ${value}'));
+//     logger.info('Got new message from port: $message');
+//   }).then((value) => logger.info('Execute done: ${value}'));
 // }
 }
 
@@ -223,7 +223,7 @@ void dummyDownload() async {
     uri,
     file.path,
     onReceiveProgress: (received, total) {
-      logger.i('Received: $received, Total: $total');
+      logger.info('Received: $received, Total: $total');
     },
   );
   print('Download is done: ${response.statusCode}');

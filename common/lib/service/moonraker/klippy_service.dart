@@ -133,13 +133,13 @@ class KlippyService {
     try {
       await _identifyConnection();
       var klippyReady = await _fetchServerInfo();
-      logger.i('KlippyReady: $klippyReady');
+      logger.info('KlippyReady: $klippyReady');
       // We can only fetch the printer info if klippy reported ready (So klippy domain is connected to moonraker)
       if (klippyReady) {
         await _fetchPrinterInfo();
       }
     } on JRpcError catch (e, s) {
-      logger.w('Jrpc Error while refreshing KlippyObject: ${e.message}');
+      logger.warning('Jrpc Error while refreshing KlippyObject: ${e.message}');
 
       _updateError(MobilerakerException('Error while refreshing KlippyObject', parentException: e), s);
       // _current = _current.copyWith(
@@ -160,10 +160,10 @@ class KlippyService {
   /// Deserializes the response into a [KlipperInstance], updates [_current], and
   /// returns the Klippy server connection status.
   Future<bool> _fetchServerInfo() async {
-    logger.i('>>>Fetching Server.Info');
+    logger.info('>>>Fetching Server.Info');
     RpcResponse rpcResponse = await _jRpcClient.sendJRpcMethod('server.info');
-    logger.i('<<<Received Server.Info');
-    logger.v('ServerInfo: ${const JsonEncoder.withIndent('  ').convert(rpcResponse.result)}');
+    logger.info('<<<Received Server.Info');
+    logger.verbose('ServerInfo: ${const JsonEncoder.withIndent('  ').convert(rpcResponse.result)}');
 
     // Server info is the first request and should therfore initialize the KlipperInstance
     var instance = KlipperInstance.fromJson(rpcResponse.result);
@@ -172,10 +172,10 @@ class KlippyService {
   }
 
   Future<void> _fetchPrinterInfo() async {
-    logger.i('>>>rpcResponse Printer.Info');
+    logger.info('>>>rpcResponse Printer.Info');
     RpcResponse rpcResponse = await _jRpcClient.sendJRpcMethod('printer.info');
-    logger.i('<<<Received Printer.Info');
-    logger.v('PrinterInfo: ${const JsonEncoder.withIndent('  ').convert(rpcResponse.result)}');
+    logger.info('<<<Received Printer.Info');
+    logger.verbose('PrinterInfo: ${const JsonEncoder.withIndent('  ').convert(rpcResponse.result)}');
 
     // Printer info is the second request and should therfore update the KlipperInstance
     _current = KlipperInstance.partialUpdate(_current, rpcResponse.result);
@@ -190,14 +190,14 @@ class KlippyService {
 
   _onNotifyKlippyReady(Map<String, dynamic> m) {
     _current = _current.copyWith(klippyState: KlipperState.ready, klippyConnected: true, klippyStateMessage: null);
-    logger.i('State: notify_klippy_ready');
+    logger.info('State: notify_klippy_ready');
     // Just to be sure, fetch all klippy info again
     refreshKlippy();
   }
 
   _onNotifyKlippyShutdown(Map<String, dynamic> m) async {
     _current = _current.copyWith(klippyState: KlipperState.shutdown, klippyStateMessage: null);
-    logger.i('State: notify_klippy_shutdown');
+    logger.info('State: notify_klippy_shutdown');
     // Just to be sure, fetch all klippy info again (Also fetches the statusMessage that contains the shutdown reason)
     refreshKlippy();
   }
@@ -205,7 +205,7 @@ class KlippyService {
   _onNotifyKlippyDisconnected(Map<String, dynamic> m) {
     _current =
         _current.copyWith(klippyConnected: false, klippyState: KlipperState.disconnected, klippyStateMessage: null);
-    logger.i('State: notify_klippy_disconnected: $m');
+    logger.info('State: notify_klippy_disconnected: $m');
     // NO need to call refreshKlippy() here, because we can not get printer.info if klippy HOST is not connected with Moonraker
   }
 

@@ -48,7 +48,7 @@ final importSources = FutureProvider.autoDispose<List<ImportMachineSettingsResul
           .timeout(const Duration(seconds: 10));
 
       if (!connected) {
-        logger.w(
+        logger.warning(
           'Could not fetch settings, no JRPC connection for ${e.logNameExtended}',
         );
         return null;
@@ -57,7 +57,7 @@ final importSources = FutureProvider.autoDispose<List<ImportMachineSettingsResul
       MachineSettings machineSettings = await ref.watch(machineServiceProvider).fetchSettings(e);
       return ImportMachineSettingsResult(e, machineSettings);
     } catch (er) {
-      logger.w('Error while trying to fetch settings for ${e.logNameExtended} !', er);
+      logger.warning('Error while trying to fetch settings for ${e.logNameExtended} !', er);
       return null;
     }
   });

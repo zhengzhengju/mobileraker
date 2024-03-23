@@ -20,7 +20,7 @@ Stream<User?> firebaseUser(FirebaseUserRef ref) {
   var firebaseAuth = ref.watch(authProvider);
 
   ref.listenSelf((previous, next) {
-    logger.i('Firebase Auth User changed from $previous to $next');
+    logger.info('Firebase Auth User changed from $previous to $next');
   });
   return firebaseAuth.authStateChanges();
 }

@@ -71,7 +71,9 @@ dependencies:
   progress_indicators: ^1.0.0
 
   #misc
-  logger: ^1.4.0
+  talker_flutter: ^4.1.0
+  talker_dio_logger: ^4.1.0
+  #  logger: ^1.4.0
   rxdart: ^0.27.3
   stringr: ^1.0.0
   collection: ^1.17.0

@@ -292,7 +292,7 @@ class MacroGroupListController extends _$MacroGroupListController {
 
   removeMacroGroup(MacroGroup macroGroup) {
     if (macroGroup.isDefaultGroup) {
-      logger.w('Can not delete default group');
+      logger.warning('Can not delete default group');
       return;
     }
 
@@ -314,7 +314,7 @@ class MacroGroupListController extends _$MacroGroupListController {
   }
 
   onMacroGroupReorderStart(int index) {
-    logger.i('on Macro Group Reorder Start. Index: $index');
+    logger.info('on Macro Group Reorder Start. Index: $index');
     var list = state.requireValue;
     _beforeReorderExpandedGroups.clear();
 
@@ -328,7 +328,7 @@ class MacroGroupListController extends _$MacroGroupListController {
   }
 
   onMacroGroupReorder(int oldIndex, int newIndex) {
-    logger.i('on Macro Group Reorder. Old: $oldIndex, New: $newIndex');
+    logger.info('on Macro Group Reorder. Old: $oldIndex, New: $newIndex');
     if (!state.hasValue) return;
 
     state = state.whenData((groups) {
@@ -344,7 +344,7 @@ class MacroGroupListController extends _$MacroGroupListController {
   }
 
   onMacroGroupReorderEnd(int index) async {
-    logger.i('on Macro Group Reorder End. Index: $index');
+    logger.info('on Macro Group Reorder End. Index: $index');
     // Slivers/Reorderable list uses 250ms as default duration
     await Future.delayed(const Duration(milliseconds: 340));
     for (var value in _beforeReorderExpandedGroups) {
@@ -354,7 +354,7 @@ class MacroGroupListController extends _$MacroGroupListController {
   }
 
   onMacroGroupRenamed(MacroGroup group, String? newName) {
-    logger.i('MacroGroup ${group.name} was renamed to $newName');
+    logger.info('MacroGroup ${group.name} was renamed to $newName');
     state = state.whenData((value) {
       // It can happen that the onMacro fired multiple times with the same name so the macro might have already changed name lol so the index might be -1 causing a NPE
       var index = value.indexOf(group);
@@ -365,7 +365,7 @@ class MacroGroupListController extends _$MacroGroupListController {
   }
 
   onMacroInGroupReorder(MacroGroup group, int oldIdx, int newIdx) {
-    logger.i('on Macro In Group Reorder');
+    logger.info('on Macro In Group Reorder');
 
     state = state.whenData((value) {
       var macros = group.macros.toList();
@@ -391,7 +391,7 @@ class MacroGroupListController extends _$MacroGroupListController {
         .read(bottomSheetServiceProvider)
         .show(BottomSheetConfig(type: SheetType.manageMacroGroupMacros, data: arguments, isScrollControlled: true));
 
-    logger.i('Got result from manageMacroGroupMacros sheet: $result');
+    logger.info('Got result from manageMacroGroupMacros sheet: $result');
     if (result.confirmed) {
       state = state.whenData((value) {
         List<MacroGroup> tmp = value.toList();
@@ -417,7 +417,7 @@ class MacroGroupListController extends _$MacroGroupListController {
         var updatedMacro = result!.data as GCodeMacro;
         var tmp = value.toList();
 
-        logger.i('Upadting macro ${macro.name} in group ${group.name}. $macro -> $updatedMacro');
+        logger.info('Upadting macro ${macro.name} in group ${group.name}. $macro -> $updatedMacro');
 
         var updatedGroup = group.copyWith(
           macros: List.unmodifiable(group.macros.toList()..[group.macros.indexOf(macro)] = updatedMacro),

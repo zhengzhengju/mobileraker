@@ -80,7 +80,7 @@ class Webcam extends HookConsumerWidget {
         ),
     ];
 
-    logger.wtf('webcamInfo.service: ${modifiedStack.length}');
+    logger.verbose('webcamInfo.service: ${modifiedStack.length}');
 
     if (webcamInfo.service.forSupporters && !ref.watch(isSupporterProvider)) {
       return SupporterOnlyFeature(

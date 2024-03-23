@@ -66,29 +66,29 @@ MachineService machineService(MachineServiceRef ref) {
 @riverpod
 Future<Machine?> machine(MachineRef ref, String uuid) async {
   ref.keepAlive();
-  ref.onDispose(() => logger.e('machineProvider disposed $uuid'));
+  ref.onDispose(() => logger.error('machineProvider disposed $uuid'));
 
-  logger.i('machineProvider creation STARTED $uuid');
+  logger.info('machineProvider creation STARTED $uuid');
   var machine = await ref.watch(machineRepositoryProvider).get(uuid: uuid);
-  logger.i('machineProvider creation DONE $uuid - returns null: ${machine == null}');
+  logger.info('machineProvider creation DONE $uuid - returns null: ${machine == null}');
   return machine;
 }
 
 @riverpod
 Future<List<Machine>> allMachines(AllMachinesRef ref) async {
   ref.listenSelf((previous, next) {
-    next.whenData((value) => logger.i('Updated allMachinesProvider: ${value.map((e) => e.logName).join()}'));
+    next.whenData((value) => logger.info('Updated allMachinesProvider: ${value.map((e) => e.logName).join()}'));
   });
 
   var settingService = ref.watch(settingServiceProvider);
   // Since the machineServiceProvider invalidates this provider, we need to use read. This is fine since machineServiceProvider is a service and non reactive!
   var machines = await ref.read(machineServiceProvider).fetchAll();
-  logger.i('Received fetchAll');
+  logger.info('Received fetchAll');
 
   var isSupporter = await ref.watch(isSupporterAsyncProvider.future);
-  logger.i('Received isSupporter $isSupporter');
+  logger.info('Received isSupporter $isSupporter');
   var maxNonSupporterMachines = ref.watch(remoteConfigProvider).maxNonSupporterMachines;
-  logger.i('Max allowed machines for non Supporters is $maxNonSupporterMachines');
+  logger.info('Max allowed machines for non Supporters is $maxNonSupporterMachines');
   if (isSupporter) {
     await settingService.delete(UtilityKeys.nonSupporterMachineCleanup);
   }
@@ -102,7 +102,7 @@ Future<List<Machine>> allMachines(AllMachinesRef ref) async {
   if (cleanupDate == null) {
     cleanupDate = DateTime.now().add(const Duration(days: 7));
     cleanupDate = DateTime(cleanupDate.year, cleanupDate.month, cleanupDate.day);
-    logger.i('Writing nonSupporter machine cleanup date $cleanupDate');
+    logger.info('Writing nonSupporter machine cleanup date $cleanupDate');
     settingService.write(UtilityKeys.nonSupporterMachineCleanup, cleanupDate);
     return machines;
   }
@@ -111,7 +111,7 @@ Future<List<Machine>> allMachines(AllMachinesRef ref) async {
     // if (cleanupDate.difference(DateTime.now()).inDays >= 0) {
     var oLen = machines.length;
     machines = machines.sublist(0, maxNonSupporterMachines);
-    logger.i(
+    logger.info(
         'Hiding machines from user since he is not a supporter! Original len was $oLen, new length is ${machines.length}');
     return machines;
   }
@@ -122,7 +122,7 @@ Future<List<Machine>> allMachines(AllMachinesRef ref) async {
 @riverpod
 Future<List<Machine>> hiddenMachines(HiddenMachinesRef ref) async {
   ref.listenSelf((previous, next) {
-    next.whenData((value) => logger.i('Updated hiddenMachinesProvider: ${value.map((e) => e.logName).join()}'));
+    next.whenData((value) => logger.info('Updated hiddenMachinesProvider: ${value.map((e) => e.logName).join()}'));
   });
 
   var machinesAvailableToUser = await ref.watch(allMachinesProvider.selectAsync((data) => data.map((e) => e.uuid)));
@@ -184,7 +184,7 @@ class MachineService {
 
   Future<void> updateMachine(Machine machine) async {
     await _machineRepo.update(machine);
-    logger.i('Updated machine: ${machine.name}');
+    logger.info('Updated machine: ${machine.name}');
     ref.read(analyticsProvider).logEvent(name: 'updated_machine');
     _machineEventStreamCtler.add(ModelEvent.update(machine, machine.uuid));
     await ref.refresh(machineProvider(machine.uuid).future);
@@ -209,9 +209,9 @@ class MachineService {
   }
 
   Future<Machine> addMachine(Machine machine) async {
-    logger.i('Trying to inser machine ${machine.name} (${machine.uuid})');
+    logger.info('Trying to inser machine ${machine.name} (${machine.uuid})');
     await _machineRepo.insert(machine);
-    logger.i('Inserted machine ${machine.name} (${machine.uuid})');
+    logger.info('Inserted machine ${machine.name} (${machine.uuid})');
     await _selectedMachineService.selectMachine(machine);
     ref.invalidate(allMachinesProvider);
     FirebaseAnalytics firebaseAnalytics = ref.read(analyticsProvider);
@@ -225,11 +225,11 @@ class MachineService {
   }
 
   Future<void> removeMachine(Machine machine) async {
-    logger.i('Removing machine ${machine.uuid}');
+    logger.info('Removing machine ${machine.uuid}');
     try {
       await ref.read(deviceFcmSettingsRepositoryProvider(machine.uuid)).delete(machine.uuid);
     } catch (e) {
-      logger.w('Was unable to delete FCM settings from machine that is about to get deleted...', e);
+      logger.warning('Was unable to delete FCM settings from machine that is about to get deleted...', e);
     }
 
     await _machineRepo.remove(machine.uuid);
@@ -239,7 +239,7 @@ class MachineService {
     _machineRepo.count().then((value) => firebaseAnalytics.updateMachineCount(value));
 
     if (_selectedMachineService.isSelectedMachine(machine)) {
-      logger.i('Removed Machine ${machine.uuid} is active machine... move to next one...');
+      logger.info('Removed Machine ${machine.uuid} is active machine... move to next one...');
       List<Machine> remainingPrinters = await _machineRepo.fetchAll();
 
       Machine? nextMachine = remainingPrinters.isNotEmpty ? remainingPrinters.first : null;
@@ -301,7 +301,7 @@ class MachineService {
     // Use this as a workaround to keep the repo active until method is done!
     var providerSubscription = ref.keepAliveExternally(deviceFcmSettingsRepositoryProvider(machine.uuid));
     try {
-      logger.i('${machine.logTagExtended} Trying to update DeviceFcmSettings');
+      logger.info('${machine.logTagExtended} Trying to update DeviceFcmSettings');
       DeviceFcmSettingsRepository fcmRepo = ref.read(deviceFcmSettingsRepositoryProvider(machine.uuid));
 
       // Remove DeviceFcmSettings if the device does not has the machineUUID anymore!
@@ -313,7 +313,7 @@ class MachineService {
 
       // Clear all of the DeviceFcmSettings that are left
       for (String uuid in allDeviceSettings.keys) {
-        logger.w(
+        logger.warning(
             '${machine.logTagExtended} Found an old DeviceFcmSettings entry with uuid $uuid that is not present anymore');
         fcmRepo.delete(uuid);
       }
@@ -336,16 +336,16 @@ class MachineService {
 
         version = '${packageInfo.version}-${Platform.operatingSystem}';
       } catch (e) {
-        logger.w('Was unable to fetch version info', e);
+        logger.warning('Was unable to fetch version info', e);
       }
 
       if (fcmSettings == null) {
         fcmSettings = DeviceFcmSettings.fallback(deviceFcmToken, machine.name, version);
         fcmSettings.settings = NotificationSettings(progress: progressMode.value, states: states);
-        logger.i(
+        logger.info(
             '${machine.logTagExtended} Did not find DeviceFcmSettings in MoonrakerDB, trying to add it: $fcmSettings');
         await fcmRepo.update(machine.uuid, fcmSettings);
-        logger.i('${machine.logTagExtended} Successfully added DeviceFcmSettings');
+        logger.info('${machine.logTagExtended} Successfully added DeviceFcmSettings');
       } else if (fcmSettings.machineName != machine.name ||
           fcmSettings.fcmToken != deviceFcmToken ||
           fcmSettings.settings.progress != progressMode.value ||
@@ -355,13 +355,13 @@ class MachineService {
         fcmSettings.machineName = machine.name;
         fcmSettings.fcmToken = deviceFcmToken;
         fcmSettings.settings = fcmSettings.settings.copyWith(progress: progressMode.value, states: states);
-        logger.i('${machine.logTagExtended} Trying to update DeviceFcmSettings');
+        logger.info('${machine.logTagExtended} Trying to update DeviceFcmSettings');
         await fcmRepo.update(machine.uuid, fcmSettings);
-        logger.i('${machine.logTagExtended} Successfully updated DeviceFcmSettings');
+        logger.info('${machine.logTagExtended} Successfully updated DeviceFcmSettings');
       } else {
-        logger.i('${machine.logTagExtended} DeviceFcmSettings is in sync!');
+        logger.info('${machine.logTagExtended} DeviceFcmSettings is in sync!');
       }
-      logger.i('${machine.logTagExtended} Latest DeviceFcmSettings is: $fcmSettings');
+      logger.info('${machine.logTagExtended} Latest DeviceFcmSettings is: $fcmSettings');
     } finally {
       providerSubscription.close();
     }
@@ -376,12 +376,12 @@ class MachineService {
     try {
       var notificationSettingsRepository = ref.read(notificationSettingsRepositoryProvider(machine.uuid));
 
-      logger.i('Updating FCM Config for machine ${machine.name} (${machine.uuid})');
+      logger.info('Updating FCM Config for machine ${machine.name} (${machine.uuid})');
 
       var connectionResult = await ref.readWhere(jrpcClientStateProvider(machine.uuid),
           (state) => ![ClientState.connecting, ClientState.disconnected].contains(state));
       if (connectionResult != ClientState.connected) {
-        logger.w(
+        logger.warning(
             '[${machine.name}@${machine.wsUri}]Unable to propagate new notification settings because JRPC was not connected!');
         return;
       }
@@ -396,7 +396,7 @@ class MachineService {
         updateReq.add(future);
       }
       if (updateReq.isNotEmpty) await Future.wait(updateReq);
-      logger.i('[${machine.name}@${machine.wsUri.obfuscate()}] Propagated new notification settings');
+      logger.info('[${machine.name}@${machine.wsUri.obfuscate()}] Propagated new notification settings');
     } finally {
       keepAliveExternally.close();
     }
@@ -410,12 +410,12 @@ class MachineService {
     try {
       var repo = ref.read(apnsRepositoryProvider(machine.uuid));
 
-      logger.i('Updating live activity in FCM for machine ${machine.name} (${machine.uuid})');
+      logger.info('Updating live activity in FCM for machine ${machine.name} (${machine.uuid})');
 
       var connectionResult = await ref.readWhere(jrpcClientStateProvider(machine.uuid),
           (state) => ![ClientState.connecting, ClientState.disconnected].contains(state));
       if (connectionResult != ClientState.connected) {
-        logger.w(
+        logger.warning(
             '[${machine.name}@${machine.wsUri}] Unable to Propagated live activity in FCM because JRPC was not connected!');
         return;
       }
@@ -424,7 +424,7 @@ class MachineService {
       } else {
         await repo.update(machine.uuid, APNs(liveActivity: liveActivityPushToken));
       }
-      logger.i('[${machine.name}@${machine.wsUri.obfuscate()}] Propagated new live activity in FCM');
+      logger.info('[${machine.name}@${machine.wsUri.obfuscate()}] Propagated new live activity in FCM');
     } finally {
       keepAliveExternally.close();
     }
@@ -434,7 +434,7 @@ class MachineService {
     try {
       await ref.read(deviceFcmSettingsRepositoryProvider(machine.uuid)).delete(machine.uuid);
     } catch (e) {
-      logger.w('Was unable to delete FCM settings from machine', e);
+      logger.warning('Was unable to delete FCM settings from machine', e);
     }
   }
 
@@ -443,7 +443,7 @@ class MachineService {
     try {
       await ref.read(deviceFcmSettingsRepositoryProvider(machine.uuid)).deleteAll();
     } catch (e) {
-      logger.w('Was unable to reset/deletaAll FCM settings from machine', e);
+      logger.warning('Was unable to reset/deletaAll FCM settings from machine', e);
     }
   }
 
@@ -453,7 +453,7 @@ class MachineService {
     var connectionResult = await ref.readWhere(jrpcClientStateProvider(machine.uuid),
         (state) => ![ClientState.connecting, ClientState.disconnected].contains(state));
     if (connectionResult != ClientState.connected) {
-      logger.w(
+      logger.warning(
           '[${machine.name}@${machine.wsUri}]Unable to propagate new notification settings because JRPC was not connected!');
       throw const MobilerakerException('Machine not connected');
     }
@@ -476,7 +476,7 @@ class MachineService {
         var meta = await fetchCompanionMetaData(machine);
         if (meta == null) noCompanion.add(machine);
       } catch (e) {
-        logger.w('Error while trying to fetch CompanionMeta for machine ${machine.name} (${machine.uuid})', e);
+        logger.warning('Error while trying to fetch CompanionMeta for machine ${machine.name} (${machine.uuid})', e);
       }
     }
     return noCompanion;
@@ -497,12 +497,12 @@ class MachineService {
     final machine = await _machineRepo.get(uuid: machineUUID);
 
     if (machine == null) {
-      logger.e('Could not update macros, machine $machineUUID not found!');
+      logger.error('Could not update macros, machine $machineUUID not found!');
       return;
     }
 
     // Log the machine information
-    logger.i('Updating Default Macros for "${machine.name}(${machine.wsUri.obfuscate()})"!');
+    logger.info('Updating Default Macros for "${machine.name}(${machine.wsUri.obfuscate()})"!');
 
     // Fetch the machine settings
     final machineSettings = await fetchSettings(machine);
@@ -530,7 +530,7 @@ class MachineService {
 
       if (legacyDefaultGrp != null) {
         hasLegacyDefaultGroup = true;
-        logger.i('Found legacy default group, migrating it to the new default group format!');
+        logger.info('Found legacy default group, migrating it to the new default group format!');
         modifiableMacroGrps.remove(legacyDefaultGrp);
 
         return MacroGroup.defaultGroup(name: 'Default', macros: legacyDefaultGrp.macros);
@@ -543,11 +543,11 @@ class MachineService {
     if (!hasLegacyDefaultGroup && !hasUnavailableMacro && filteredRawMacros.isEmpty) return;
 
     if (hasUnavailableMacro) {
-      logger.i('Found some unavailable macros, will update all groups without the unavailable macros!');
+      logger.info('Found some unavailable macros, will update all groups without the unavailable macros!');
     }
 
     // Log the number of new macros being added to the default group
-    logger.i('Adding ${filteredRawMacros.length} new macros to the default group!');
+    logger.info('Adding ${filteredRawMacros.length} new macros to the default group!');
 
     // Create an updated default group with the combined macros
     final updatedDefaultGrp = defaultGroup.copyWith(
@@ -573,7 +573,7 @@ class MachineService {
     try {
       octoPrinterId = await moonrakerDatabaseClient.getDatabaseItem('octoeverywhere', key: 'public.printerId');
     } on WebSocketException {
-      logger.w('Rpc Client was not connected, could not fetch octo.printerId. User can select by himself!');
+      logger.warning('Rpc Client was not connected, could not fetch octo.printerId. User can select by himself!');
     }
 
     return _appConnectionService.linkAppWithOcto(printerId: octoPrinterId);
@@ -585,7 +585,7 @@ class MachineService {
     try {
       obicoPrinterId = await moonrakerDatabaseClient.getDatabaseItem('obico', key: 'printer_id');
     } on WebSocketException {
-      logger.w('Rpc Client was not connected, could not fetch obico.printer_id. User can select by himself!');
+      logger.warning('Rpc Client was not connected, could not fetch obico.printer_id. User can select by himself!');
     }
 
     return ref.watch(obicoTunnelServiceProvider(baseUrl)).linkApp(printerId: obicoPrinterId);

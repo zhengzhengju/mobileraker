@@ -52,11 +52,11 @@ extension MobilerakerFF on FirebaseRemoteConfig {
         'developer_announcements': json.encode({'enabled': false, 'messages': []}),
       });
       fetchAndActivate().then((value) {
-        logger.i('FirebaseRemote values are fetched and activated!');
+        logger.info('FirebaseRemote values are fetched and activated!');
       }).ignore();
-      logger.i('Completed FirebaseRemote init');
+      logger.info('Completed FirebaseRemote init');
     } catch (e, s) {
-      logger.w('Error while trying to setup Firebase Remote Config', e);
+      logger.warning('Error while trying to setup Firebase Remote Config', e);
       FirebaseCrashlytics.instance.recordError(
         e,
         s,

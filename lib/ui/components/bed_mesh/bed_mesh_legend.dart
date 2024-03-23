@@ -33,7 +33,7 @@ class _BedMeshLegendState extends State<BedMeshLegend> {
 
   @override
   Widget build(BuildContext context) {
-    logger.i('Got value range ${widget.valueRange}');
+    logger.info('Got value range ${widget.valueRange}');
 
     LinearGradient gradient = gradientForRange(widget.valueRange.$1, widget.valueRange.$2, true);
 
@@ -41,7 +41,7 @@ class _BedMeshLegendState extends State<BedMeshLegend> {
     return GestureDetector(
       onVerticalDragUpdate: (details) => _showTooltip(details.localPosition.dy),
       onTapDown: (details) {
-        logger.i('Tapped down!');
+        logger.info('Tapped down!');
         _showTooltip(details.localPosition.dy);
       },
       onTapUp: (details) => removeOverlay(),

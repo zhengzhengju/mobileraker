@@ -42,7 +42,7 @@ class StreamMjpegManager implements MjpegManager {
 
   @override
   void stop() {
-    logger.i('StreamMjpegManager stopped stream');
+    logger.info('StreamMjpegManager stopped stream');
     _subscription?.cancel();
   }
 
@@ -62,7 +62,7 @@ class StreamMjpegManager implements MjpegManager {
       ResponseBody responseBody = response.data;
       _subscription = responseBody.stream.listen(_onData, onError: _onError, cancelOnError: true);
     } on DioException catch (error, stack) {
-      logger.w('DioException while requesting MJPEG-Stream', error);
+      logger.warning('DioException while requesting MJPEG-Stream', error);
 
       if (!_mjpegStreamController.isClosed) {
         _mjpegStreamController.addError(error, stack);
@@ -120,6 +120,6 @@ class StreamMjpegManager implements MjpegManager {
     _subscription = null;
     _mjpegStreamController.close();
 
-    logger.i('StreamMjpegManager DISPOSED');
+    logger.info('StreamMjpegManager DISPOSED');
   }
 }
